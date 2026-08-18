@@ -87,7 +87,7 @@ button{ cursor:pointer; }
   display:flex; align-items:center; justify-content:space-between; padding:0 22px; flex-shrink:0;
   position:sticky; top:0; z-index:20;
 }
-.topbar-title{ font-size:16px; font-weight:600; }
+.topbar-title{ font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .topbar-sub{ font-size:12px; color:var(--ink-soft); margin-top:1px; }
 .topbar-right{ display:flex; align-items:center; gap:10px; }
 
@@ -131,11 +131,39 @@ button{ cursor:pointer; }
 .grid{ display:grid; gap:14px; }
 .grid-4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
 .grid-2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+
+.nav-toggle{ display:none; }
+.sidebar-backdrop{ display:none; }
+
+@media (max-width:900px){
+  .nav-toggle{ display:flex; align-items:center; justify-content:center; width:36px;height:36px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); margin-right:10px; flex-shrink:0; }
+  .sidebar{
+    position:fixed; top:0; left:0; height:100vh; z-index:70;
+    transform:translateX(-100%); transition:transform .22s ease;
+  }
+  .sidebar.open{ transform:translateX(0); box-shadow:10px 0 30px rgba(19,26,43,0.3); }
+  .sidebar-backdrop{ display:block; position:fixed; inset:0; background:rgba(19,26,43,0.45); z-index:60; opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  .sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
+  .main{ width:100%; min-width:0; }
+}
+@media (max-width:640px){
+  .topbar{ padding:0 14px; gap:8px; }
+  .topbar-title{ font-size:14.5px; }
+  .topbar-sub{ display:none; }
+  .topbar-right{ gap:6px; }
+  .role-btn{ padding:6px 8px; }
+  .role-btn .role-btn-label{ display:none; }
+  .logout-btn .logout-label{ display:none; }
+  .logout-btn{ padding:6px 8px; }
+}
 @media (max-width:720px){
   .grid-4{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   .grid-2{ grid-template-columns:1fr; }
   .content{ padding:16px 14px 60px; }
   .detail-grid{ grid-template-columns:1fr !important; }
+  .filters{ flex-direction:column; align-items:stretch; }
+  .filters input, .filters select{ width:100%; }
+  .filters button{ margin-left:0 !important; }
 }
 
 .modal-overlay{ position:fixed; inset:0; background:rgba(19,26,43,0.45); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
@@ -352,6 +380,91 @@ let notifications = {
   assetmanager: [],
 };
 
+/* ================= PERSISTENCE (localStorage) =================
+   This app has no backend — everything lives in this browser tab.
+   Without this, closing the tab, reloading, or a colleague opening
+   the file fresh would wipe every pending signup, password change,
+   ticket, and asset. Saving to localStorage after every change (and
+   loading it back on startup) makes data durable across reloads on
+   this device/browser. It still won't sync across different devices
+   or browsers — that needs a real backend. */
+const STORAGE_KEY = 'itdesk_ibridge_data_v1';
+const DATE_FIELDS = {
+  ticket: ['createdAt','updatedAt','slaDeadline'],
+  ticketActivity: ['timestamp'],
+  ticketComment: ['timestamp'],
+  user: ['lastActive','requestedAt'],
+  asset: ['joiningDate','assetAllotDate','exitDate'],
+  auditEntry: ['timestamp'],
+  passwordReset: ['requestedAt'],
+  notification: ['time'],
+};
+function reviveDates(obj, fields){
+  if (!obj) return obj;
+  fields.forEach(f => { if (obj[f]) obj[f] = new Date(obj[f]); });
+  return obj;
+}
+function hasLocalStorage(){
+  try{
+    if (typeof localStorage === 'undefined') return false;
+    const k = '__itdesk_test__';
+    localStorage.setItem(k,'1'); localStorage.removeItem(k);
+    return true;
+  } catch(e){ return false; }
+}
+const STORAGE_AVAILABLE = hasLocalStorage();
+
+function saveToStorage(){
+  if (!STORAGE_AVAILABLE) return;
+  try{
+    const payload = { ticketCounter, assetCounter, tickets, users, assets, auditLog, passwordResets, notifications };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch(e){ /* storage full or blocked — fail silently, app still works in-memory */ }
+}
+
+function loadFromStorage(){
+  if (!STORAGE_AVAILABLE) return false;
+  let raw;
+  try{ raw = localStorage.getItem(STORAGE_KEY); } catch(e){ return false; }
+  if (!raw) return false;
+  let data;
+  try{ data = JSON.parse(raw); } catch(e){ return false; }
+  if (!data || !Array.isArray(data.tickets) || !Array.isArray(data.users)) return false;
+
+  data.tickets.forEach(t => {
+    reviveDates(t, DATE_FIELDS.ticket);
+    (t.activity||[]).forEach(a => reviveDates(a, DATE_FIELDS.ticketActivity));
+    (t.comments||[]).forEach(c => reviveDates(c, DATE_FIELDS.ticketComment));
+  });
+  data.users.forEach(u => reviveDates(u, DATE_FIELDS.user));
+  (data.assets||[]).forEach(a => reviveDates(a, DATE_FIELDS.asset));
+  (data.auditLog||[]).forEach(a => reviveDates(a, DATE_FIELDS.auditEntry));
+  (data.passwordResets||[]).forEach(r => reviveDates(r, DATE_FIELDS.passwordReset));
+  Object.keys(data.notifications||{}).forEach(role => {
+    (data.notifications[role]||[]).forEach(n => reviveDates(n, DATE_FIELDS.notification));
+  });
+
+  ticketCounter = data.ticketCounter || ticketCounter;
+  assetCounter = data.assetCounter || assetCounter;
+  tickets = data.tickets;
+  users = data.users;
+  assets = data.assets || [];
+  auditLog = data.auditLog || [];
+  passwordResets = data.passwordResets || [];
+  notifications = data.notifications || notifications;
+  return true;
+}
+
+function clearStoredDataAndReload(){
+  try{ if (STORAGE_AVAILABLE) localStorage.removeItem(STORAGE_KEY); } catch(e){}
+  location.reload();
+}
+function confirmClearStoredData(){
+  openModal({ kind:'confirm-clear-storage', title:'Clear saved data?', message:'This erases everything saved in this browser (tickets, users, assets, password changes) and reloads back to the original sample accounts. This can\'t be undone.', confirmLabel:'Clear & reload' });
+}
+
+const LOADED_FROM_STORAGE = loadFromStorage();
+
 /* ================= STATE ================= */
 const state = {
   authenticated: false,
@@ -363,6 +476,7 @@ const state = {
   filter: { status:'all', priority:'all', category:'all', q:'' },
   userTab: 'pending',
   roleMenuOpen: false,
+  mobileNavOpen: false,
   notifOpen: false,
   commentDraft: '',
   commentInternal: false,
@@ -468,7 +582,7 @@ function switchRole(role){
   state.view = role === 'admin' ? 'dashboard' : (role === 'technician' ? 'tech-assigned' : (role === 'assetmanager' ? 'assets' : 'new-ticket'));
   render();
 }
-function switchView(view){ state.view = view; state.selectedTicketId = null; render(); }
+function switchView(view){ state.view = view; state.selectedTicketId = null; state.mobileNavOpen = false; render(); }
 
 function currentPersona(){
   const u = users.find(x => x.id === state.currentUserId);
@@ -547,6 +661,21 @@ function confirmModal(){
   } else if (m.kind === 'confirm-approve-reset'){
     doApproveReset(m.targetId);
     return; // doApproveReset opens the follow-up info modal itself
+  } else if (m.kind === 'confirm-clear-storage'){
+    clearStoredDataAndReload();
+    return;
+  } else if (m.kind === 'edit-user'){
+    const name = document.getElementById('modal-name').value.trim();
+    const email = document.getElementById('modal-email').value.trim().toLowerCase();
+    const dept = document.getElementById('modal-dept').value.trim();
+    const err = document.getElementById('modal-error');
+    const showErr = (msg) => { if (err){ err.style.display='block'; err.innerText = msg; } };
+    if (!name || !email){ showErr('Name and email are required.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showErr('Enter a valid email address.'); return; }
+    const dup = users.find(u => u.id !== m.targetId && u.email === email);
+    if (dup){ showErr('Another account already uses that email.'); return; }
+    doEditUser(m.targetId, name, email, dept);
+    return;
   } else if (m.kind === 'info'){
     closeModal();
     return;
@@ -564,6 +693,12 @@ function modalHtml(){
   }
   if (m.kind === 'info' && m.copyValue){
     body = '<div class="modal-copybox">'+esc(m.copyValue)+'</div><div class="hint">Tap to select, then copy.</div>';
+  }
+  if (m.kind === 'edit-user'){
+    body = '<div class="field"><label>Name</label><input type="text" id="modal-name" value="'+esc(m.presetName||'')+'"></div>' +
+      '<div class="field"><label>Email</label><input type="text" id="modal-email" value="'+esc(m.presetEmail||'')+'"></div>' +
+      '<div class="field" style="margin-bottom:4px"><label>Department</label><input type="text" id="modal-dept" value="'+esc(m.presetDept||'')+'"></div>' +
+      '<div id="modal-error" class="hint" style="display:none;color:var(--critical);margin-bottom:8px"></div>';
   }
   const singleButton = m.kind === 'info';
   return '<div class="modal-overlay" onclick="if(event.target===this) closeModal()">' +
@@ -735,6 +870,22 @@ function getSuperAdmin(){ return users.find(u => u.isSuperAdmin); }
 function isCurrentUserSuperAdmin(){
   const me = users.find(u => u.email === currentPersona().email);
   return !!(me && me.isSuperAdmin);
+}
+
+function editUserOpen(id){
+  const u = users.find(x=>x.id===id);
+  if (!u) return;
+  openModal({ kind:'edit-user', targetId:id, title:'Edit user details', confirmLabel:'Save changes',
+    presetName:u.name, presetEmail:u.email, presetDept:u.dept });
+}
+function doEditUser(id, name, email, dept){
+  const u = users.find(x=>x.id===id);
+  if (!u) return;
+  const oldEmail = u.email;
+  u.name = name; u.email = email; u.dept = dept;
+  logAudit(currentPersona().name, 'Admin', 'Edited user details', '—', oldEmail, email);
+  maybeAutoExport('users');
+  openModal({ kind:'info', title:'User updated', message: name + '\'s details have been saved. If their email changed, they should use the new one to log in next time.' });
 }
 
 function changeUserRole(id, role){
@@ -1038,6 +1189,7 @@ const VIEW_TITLE = {
 
 /* ================= RENDER ================= */
 function render(){
+  saveToStorage();
   const app = document.getElementById('app');
   app.innerHTML = state.authenticated ? shellHtml() : authShellHtml();
 }
@@ -1095,7 +1247,9 @@ function forgotDoneHtml(){
 }
 
 function shellHtml(){
-  return '<div class="shell">' + sidebarHtml() + mainHtml() + '</div>' + modalHtml();
+  return '<div class="shell">' +
+    '<div class="sidebar-backdrop ' + (state.mobileNavOpen?'open':'') + '" onclick="closeMobileNav()"></div>' +
+    sidebarHtml() + mainHtml() + '</div>' + modalHtml();
 }
 
 function sidebarHtml(){
@@ -1108,7 +1262,7 @@ function sidebarHtml(){
     ).join('') + '</div>'
   )).join('');
 
-  return '<div class="sidebar">' +
+  return '<div class="sidebar ' + (state.mobileNavOpen?'open':'') + '">' +
     '<div class="brand"><div class="brand-mark"><img src="'+LOGO_SRC+'" alt="iBridge Techsoft logo"></div><div><div class="brand-name">iBridge Techsoft</div><div class="brand-sub">IT HELPDESK</div></div></div>' +
     nav +
     '<div class="sidebar-foot"><div class="role-card"><b>' + currentPersona().name + '</b>' + roleLabel(state.role) + ' · ' + currentPersona().dept + '</div></div>' +
@@ -1122,6 +1276,9 @@ function roleLabel(role){
   return 'User';
 }
 
+function toggleMobileNav(){ state.mobileNavOpen = !state.mobileNavOpen; render(); }
+function closeMobileNav(){ state.mobileNavOpen = false; render(); }
+
 function mainHtml(){
   const [title, desc] = VIEW_TITLE[state.view] || ['',''];
   return '<div class="main">' + topbarHtml(title, desc) + '<div class="content">' + viewHtml() + '</div></div>';
@@ -1131,7 +1288,8 @@ function topbarHtml(title, desc){
   const notifs = notifications[state.role] || [];
   const account = state.role === 'admin' ? adminRoleSwitchHtml() : staticAccountBadgeHtml();
   return '<div class="topbar">' +
-    '<div><div class="topbar-title">' + title + '</div>' + (desc?'<div class="topbar-sub">'+desc+'</div>':'') + '</div>' +
+    '<button class="nav-toggle" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>' +
+    '<div style="min-width:0;overflow:hidden"><div class="topbar-title">' + title + '</div>' + (desc?'<div class="topbar-sub">'+desc+'</div>':'') + '</div>' +
     '<div class="topbar-right">' +
       '<div class="role-switch">' +
         '<button class="bell" onclick="toggleNotif()"><i>&#128276;</i>' + (notifs.length? '<span class="bell-badge">'+notifs.length+'</span>':'') + '</button>' +
@@ -1140,14 +1298,14 @@ function topbarHtml(title, desc){
         '</div>' +
       '</div>' +
       account +
-      '<button class="logout-btn" onclick="logout()">Log out</button>' +
+      '<button class="logout-btn" onclick="logout()"><span>&#9211;</span><span class="logout-label">Log out</span></button>' +
     '</div>' +
   '</div>';
 }
 
 function adminRoleSwitchHtml(){
   return '<div class="role-switch">' +
-    '<button class="role-btn" onclick="toggleRoleMenu()"><span class="avatar">' + initials(currentPersona().name) + '</span>' + roleLabel(state.role) + ' view ▾</button>' +
+    '<button class="role-btn" onclick="toggleRoleMenu()"><span class="avatar">' + initials(currentPersona().name) + '</span><span class="role-btn-label">' + roleLabel(state.role) + ' view ▾</span></button>' +
     '<div class="dropdown ' + (state.roleMenuOpen?'open':'') + '">' +
       '<div style="padding:6px 10px 4px;font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Admin preview</div>' +
       '<button class="dropdown-item ' + (state.role==='user'?'active':'') + '" onclick="switchRole(\'user\')">View as User</button>' +
@@ -1158,7 +1316,7 @@ function adminRoleSwitchHtml(){
 }
 
 function staticAccountBadgeHtml(){
-  return '<div class="role-btn" style="cursor:default"><span class="avatar">' + initials(currentPersona().name) + '</span>' + roleLabel(state.role) + '</div>';
+  return '<div class="role-btn" style="cursor:default"><span class="avatar">' + initials(currentPersona().name) + '</span><span class="role-btn-label">' + roleLabel(state.role) + '</span></div>';
 }
 
 function viewHtml(){
@@ -1527,7 +1685,7 @@ function usersHtml(){
     html += pending.length ? '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Requested</th><th></th></tr></thead><tbody>' +
       pending.map(u => (
         '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td><td>'+esc(u.dept)+'</td><td class="faint">'+fmtRelative(u.requestedAt)+'</td>' +
-        '<td style="text-align:right"><button class="btn btn-sm" style="margin-right:6px" onclick="rejectUser(\''+u.id+'\')">Reject</button><button class="btn btn-primary btn-sm" onclick="approveUser(\''+u.id+'\')">Approve</button></td></tr>'
+        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-sm" style="margin-right:6px" onclick="rejectUser(\''+u.id+'\')">Reject</button><button class="btn btn-primary btn-sm" onclick="approveUser(\''+u.id+'\')">Approve</button></td></tr>'
       )).join('') + '</tbody></table></div>' : '<div class="card empty">No pending signups.</div>';
   }
 
@@ -1551,7 +1709,7 @@ function usersHtml(){
           (iAmSuper && u.role === 'Admin' ? '<button class="btn btn-sm" onclick="transferSuperAdmin(\''+u.id+'\')">Make Super Admin</button>' : '<span class="faint">—</span>')) +
         '</td>' +
         '<td>'+esc(u.dept)+'</td><td class="faint">'+fmtRelative(u.lastActive)+'</td>' +
-        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="adminResetPassword(\''+u.id+'\')">Reset password</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
+        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-sm" style="margin-right:6px" onclick="adminResetPassword(\''+u.id+'\')">Reset password</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
       )).join('') + '</tbody></table></div>';
   }
 
@@ -1560,7 +1718,7 @@ function usersHtml(){
     html += disabled.length ? '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th></th></tr></thead><tbody>' +
       disabled.map(u => (
         '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td><td>'+esc(u.dept)+'</td>' +
-        '<td style="text-align:right"><button class="btn btn-primary btn-sm" onclick="enableUser(\''+u.id+'\')">Enable</button></td></tr>'
+        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-primary btn-sm" onclick="enableUser(\''+u.id+'\')">Enable</button></td></tr>'
       )).join('') + '</tbody></table></div>' : '<div class="card empty">No disabled users.</div>';
   }
 
@@ -1992,6 +2150,14 @@ function settingsHtml(){
   const otherAdmins = users.filter(u => u.role === 'Admin' && u.status === 'active' && !u.isSuperAdmin);
 
   let html = '<div class="card" style="max-width:560px;margin-bottom:16px">' +
+    '<div class="section-title">Local data storage</div>' +
+    (STORAGE_AVAILABLE ?
+      '<div class="hint" style="margin-bottom:10px">'+(LOADED_FROM_STORAGE ? 'Data was restored from this browser\'s storage — ' : 'Saving automatically to this browser\'s storage — ')+'every ticket, user, asset, and password change is saved here automatically and survives reloads and closing the tab. It only lives on this device and browser; a colleague opening this file on their own computer starts fresh, and clearing browser data will erase it here too.</div>' +
+      '<button class="btn btn-sm btn-danger" onclick="confirmClearStoredData()">Clear saved data & reset to defaults</button>'
+      : '<div class="banner banner-warn">This browser is blocking local storage (private/incognito mode, or storage disabled), so changes will NOT survive a reload — use Export data regularly to avoid losing work.</div>') +
+  '</div>';
+
+  html += '<div class="card" style="max-width:560px;margin-bottom:16px">' +
     '<div class="section-title">Super Admin access</div>' +
     '<div class="info-row"><span class="k">Current Super Admin</span><span class="v">' + (superAdmin ? '⭐ '+esc(superAdmin.name) : '— none —') + '</span></div>';
 
