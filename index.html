@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iBridge Techsoft — IT Helpdesk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#EEF1F6;
+  --surface:#FFFFFF;
+  --surface-alt:#F4F6F9;
+  --ink:#131A2B;
+  --ink-soft:#5B6478;
+  --ink-faint:#8B93A6;
+  --border:#DEE3EA;
+  --border-soft:#EAEDF2;
+  --accent:#0F6E56;
+  --accent-dark:#0A5343;
+  --accent-soft:#E1F1EC;
+  --critical:#B3261E; --critical-soft:#FBE7E6;
+  --high:#C2600B; --high-soft:#FCEEDF;
+  --medium:#8A6D06; --medium-soft:#FBF3D8;
+  --low:#3E7A57; --low-soft:#E7F3EC;
+  --st-open:#1D5DBF; --st-open-soft:#E4EDFB;
+  --st-prog:#B4740B; --st-prog-soft:#FBF0DC;
+  --st-next:#6A3FB0; --st-next-soft:#EFE7FB;
+  --st-res:#227A4B; --st-res-soft:#E1F2E8;
+  --st-closed:#5B6478; --st-closed-soft:#E7E9EE;
+  --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --radius:10px;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.5;
+}
+button, input, select, textarea{ font-family:inherit; font-size:inherit; color:inherit; }
+button{ cursor:pointer; }
+::selection{ background:var(--accent-soft); }
+
+.shell{ display:flex; min-height:100vh; }
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width:216px; flex-shrink:0; background:var(--ink); color:#EDEFF4;
+  display:flex; flex-direction:column; padding:20px 14px;
+}
+.brand{ display:flex; align-items:center; gap:9px; padding:2px 8px 22px; }
+.brand-mark{
+  width:30px;height:30px;border-radius:7px;background:#fff;
+  display:flex;align-items:center;justify-content:center; flex-shrink:0; padding:3px;
+}
+.brand-mark img{ width:100%; height:100%; object-fit:contain; }
+.brand-name{ font-weight:600; font-size:14px; letter-spacing:0.1px; line-height:1.25; }
+.brand-sub{ font-family:var(--font-mono); font-size:9.5px; color:#8B93A6; letter-spacing:0.5px; }
+
+.nav-group{ margin-bottom:16px; }
+.nav-label{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:0.8px; color:#6B7385;
+  padding:6px 10px 6px; font-weight:600;
+}
+.nav-item{
+  display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+  background:none; border:none; color:#C7CBD8; padding:8px 10px; border-radius:7px;
+  font-size:13.3px; margin-bottom:2px; transition:background .12s;
+}
+.nav-item:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+.nav-item.active{ background:var(--accent); color:#fff; }
+.nav-dot{ width:6px;height:6px;border-radius:50%; background:#5B6478; flex-shrink:0; }
+.nav-item.active .nav-dot{ background:#fff; }
+
+.sidebar-foot{ margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08); }
+.role-card{ font-size:11.5px; color:#8B93A6; padding:6px 10px; }
+.role-card b{ color:#EDEFF4; display:block; font-size:13px; margin-bottom:1px; }
+
+/* ---------- Main ---------- */
+.main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.topbar{
+  height:58px; background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; padding:0 22px; flex-shrink:0;
+  position:sticky; top:0; z-index:20;
+}
+.topbar-title{ font-size:16px; font-weight:600; }
+.topbar-sub{ font-size:12px; color:var(--ink-soft); margin-top:1px; }
+.topbar-right{ display:flex; align-items:center; gap:10px; }
+
+.role-switch{ position:relative; }
+.role-btn{
+  display:flex; align-items:center; gap:7px; background:var(--surface-alt);
+  border:1px solid var(--border); padding:6px 10px 6px 8px; border-radius:8px; font-size:12.5px;
+}
+.avatar{
+  width:22px;height:22px;border-radius:50%; background:var(--accent-soft); color:var(--accent-dark);
+  display:flex;align-items:center;justify-content:center; font-size:10.5px; font-weight:600; font-family:var(--font-mono);
+}
+.dropdown{
+  position:absolute; top:calc(100% + 6px); right:0; background:var(--surface); border:1px solid var(--border);
+  border-radius:9px; box-shadow:0 8px 24px rgba(19,26,43,0.14); min-width:190px; padding:6px; z-index:40; display:none;
+}
+.dropdown.open{ display:block; }
+.dropdown-item{
+  display:block; width:100%; text-align:left; padding:8px 10px; border-radius:6px; background:none; border:none; font-size:12.8px;
+}
+.dropdown-item:hover{ background:var(--surface-alt); }
+.dropdown-item.active{ color:var(--accent-dark); font-weight:600; }
+
+.bell{ position:relative; width:34px;height:34px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); display:flex; align-items:center; justify-content:center; }
+.bell-badge{ position:absolute; top:-3px; right:-3px; background:var(--critical); color:#fff; font-size:9.5px; font-family:var(--font-mono); border-radius:8px; padding:1px 4px; min-width:14px; text-align:center; }
+.notif-panel{ width:300px; max-height:360px; overflow-y:auto; }
+.notif-item{ padding:9px 10px; border-radius:6px; }
+.notif-item:hover{ background:var(--surface-alt); }
+.notif-text{ font-size:12.3px; color:var(--ink); }
+.notif-time{ font-size:10.8px; color:var(--ink-faint); margin-top:2px; font-family:var(--font-mono); }
+
+.content{ padding:22px 26px 60px; max-width:1180px; }
+
+/* ---------- Generic bits ---------- */
+.page-head{ margin-bottom:18px; }
+.page-title{ font-size:19px; font-weight:600; margin:0 0 3px; }
+.page-desc{ font-size:12.8px; color:var(--ink-soft); margin:0; }
+
+.card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; overflow-x:auto; }
+.card table{ min-width:640px; }
+.grid{ display:grid; gap:14px; }
+.grid-4{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+.grid-2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media (max-width:720px){
+  .grid-4{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .grid-2{ grid-template-columns:1fr; }
+  .content{ padding:16px 14px 60px; }
+  .detail-grid{ grid-template-columns:1fr !important; }
+}
+
+.modal-overlay{ position:fixed; inset:0; background:rgba(19,26,43,0.45); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+.modal-card{ background:var(--surface); border-radius:12px; padding:22px 24px; width:100%; max-width:400px; box-shadow:0 20px 50px rgba(19,26,43,0.25); }
+.modal-title{ font-size:15.5px; font-weight:600; margin-bottom:8px; }
+.modal-message{ font-size:12.8px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px; white-space:pre-line; }
+.modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+.modal-copybox{ font-family:var(--font-mono); font-size:14px; font-weight:600; background:var(--accent-soft); color:var(--accent-dark); border-radius:7px; padding:10px 12px; text-align:center; letter-spacing:0.5px; margin-bottom:6px; user-select:all; }
+
+.stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+.stat-num{ font-family:var(--font-mono); font-size:26px; font-weight:600; line-height:1; margin-bottom:6px; }
+.stat-label{ font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+.stat-card.st-open .stat-num{ color:var(--st-open); }
+.stat-card.st-prog .stat-num{ color:var(--st-prog); }
+.stat-card.st-next .stat-num{ color:var(--st-next); }
+.stat-card.st-res .stat-num{ color:var(--st-res); }
+
+.btn{
+  display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:7px; border:1px solid var(--border);
+  background:var(--surface); font-size:12.8px; font-weight:500; color:var(--ink);
+}
+.btn:hover{ border-color:var(--ink-faint); }
+.btn-primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn-primary:hover{ background:var(--accent-dark); border-color:var(--accent-dark); }
+.btn-danger{ background:var(--critical-soft); border-color:var(--critical-soft); color:var(--critical); }
+.btn-sm{ padding:5px 10px; font-size:11.8px; border-radius:6px; }
+.btn-block{ width:100%; justify-content:center; }
+.btn[disabled]{ opacity:0.45; cursor:not-allowed; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; }
+.field .req{ color:var(--critical); }
+.field input[type=text], .field input[type=password], .field input[type=file], .field select, .field textarea{
+  width:100%; border:1px solid var(--border); border-radius:7px; padding:9px 11px; background:var(--surface-alt);
+}
+.field textarea{ resize:vertical; min-height:80px; }
+.field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--accent); outline-offset:1px; background:var(--surface); }
+.hint{ font-size:11.3px; color:var(--ink-faint); margin-top:4px; }
+
+.badge{ display:inline-flex; align-items:center; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+.badge-open{ background:var(--st-open-soft); color:var(--st-open); }
+.badge-prog{ background:var(--st-prog-soft); color:var(--st-prog); }
+.badge-next{ background:var(--st-next-soft); color:var(--st-next); }
+.badge-res{ background:var(--st-res-soft); color:var(--st-res); }
+.badge-closed{ background:var(--st-closed-soft); color:var(--st-closed); }
+.pri-critical{ background:var(--critical-soft); color:var(--critical); }
+.pri-high{ background:var(--high-soft); color:var(--high); }
+.pri-medium{ background:var(--medium-soft); color:var(--medium); }
+.pri-low{ background:var(--low-soft); color:var(--low); }
+
+table{ width:100%; border-collapse:collapse; }
+th{ text-align:left; font-size:10.8px; text-transform:uppercase; letter-spacing:0.5px; color:var(--ink-faint); padding:9px 12px; border-bottom:1px solid var(--border); font-weight:600; }
+td{ padding:11px 12px; border-bottom:1px solid var(--border-soft); font-size:13px; vertical-align:middle; }
+tr.row-click{ cursor:pointer; }
+tr.row-click:hover td{ background:var(--surface-alt); }
+.tid{ font-family:var(--font-mono); font-weight:600; font-size:12.3px; color:var(--accent-dark); }
+.muted{ color:var(--ink-soft); }
+.faint{ color:var(--ink-faint); }
+.mono{ font-family:var(--font-mono); }
+
+.filters{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+.filters select, .filters input{ border:1px solid var(--border); border-radius:7px; padding:7px 10px; background:var(--surface); font-size:12.5px; }
+.filters input{ flex:1; min-width:160px; }
+.inline-select{ border:1px solid var(--border); border-radius:6px; padding:4px 7px; font-size:11.8px; background:var(--surface); }
+
+.tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+.tab{ padding:9px 14px; font-size:12.8px; font-weight:500; color:var(--ink-soft); border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; }
+.tab.active{ color:var(--accent-dark); border-bottom-color:var(--accent); font-weight:600; }
+
+.back-link{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-soft); background:none; border:none; margin-bottom:14px; padding:0; }
+.back-link:hover{ color:var(--ink); }
+
+/* Status rail — signature element */
+.rail{ display:flex; align-items:center; margin:6px 0 22px; }
+.rail-step{ display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
+.rail-node{
+  width:26px;height:26px; border-radius:50%; background:var(--surface-alt); border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:11px; font-weight:600; color:var(--ink-faint); z-index:2;
+}
+.rail-step.done .rail-node{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.rail-step.current .rail-node{ background:var(--surface); border-color:var(--accent); color:var(--accent-dark); box-shadow:0 0 0 3px var(--accent-soft); }
+.rail-line{ position:absolute; top:12px; left:calc(-50% + 13px); width:calc(100% - 26px); height:2px; background:var(--border); z-index:1; }
+.rail-step.done .rail-line, .rail-step.current .rail-line{ background:var(--accent); }
+.rail-step:first-child .rail-line{ display:none; }
+.rail-label{ font-size:10.3px; color:var(--ink-faint); margin-top:6px; font-weight:600; letter-spacing:0.3px; text-align:center; }
+.rail-step.done .rail-label, .rail-step.current .rail-label{ color:var(--ink); }
+
+.detail-grid{ display:grid; grid-template-columns:1fr 300px; gap:16px; align-items:start; }
+.info-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-soft); font-size:12.8px; }
+.info-row:last-child{ border-bottom:none; }
+.info-row .k{ color:var(--ink-soft); }
+.info-row .v{ font-weight:500; text-align:right; }
+
+.comment{ padding:12px 0; border-bottom:1px solid var(--border-soft); }
+.comment:last-child{ border-bottom:none; }
+.comment-head{ display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+.comment-author{ font-weight:600; font-size:12.6px; }
+.comment-role{ font-size:10px; color:var(--ink-faint); font-family:var(--font-mono); }
+.comment-time{ font-size:10.8px; color:var(--ink-faint); margin-left:auto; font-family:var(--font-mono); }
+.comment-text{ font-size:12.8px; color:var(--ink); line-height:1.6; }
+.comment.internal{ background:var(--medium-soft); margin:0 -12px 10px; padding:10px 12px; border-radius:7px; border-bottom:none; }
+.internal-tag{ background:var(--medium); color:#fff; font-size:9px; padding:1px 6px; border-radius:4px; font-weight:600; letter-spacing:0.3px; }
+
+.activity-item{ display:flex; gap:9px; padding:7px 0; font-size:12px; }
+.activity-dot{ width:6px;height:6px;border-radius:50%; background:var(--accent); margin-top:5px; flex-shrink:0; }
+.activity-text{ color:var(--ink); }
+.activity-time{ color:var(--ink-faint); font-size:10.6px; font-family:var(--font-mono); margin-top:1px; }
+
+.bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+.bar-label{ width:108px; font-size:12px; color:var(--ink-soft); flex-shrink:0; }
+.bar-track{ flex:1; background:var(--surface-alt); border-radius:5px; height:9px; overflow:hidden; }
+.bar-fill{ height:100%; background:var(--accent); border-radius:5px; }
+.bar-num{ width:26px; text-align:right; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); }
+
+.section-title{ font-size:13.5px; font-weight:600; margin:0 0 12px; }
+.empty{ text-align:center; padding:40px 20px; color:var(--ink-faint); font-size:13px; }
+
+.banner{ display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border-radius:8px; font-size:12.6px; margin-bottom:16px; }
+.banner-closed{ background:var(--st-closed-soft); color:var(--ink-soft); border:1px solid var(--border); }
+.banner-warn{ background:var(--high-soft); color:var(--high); }
+
+.checkbox-row{ display:flex; align-items:center; gap:7px; font-size:12.3px; color:var(--ink-soft); margin-top:8px; }
+.pill-toggle{ display:flex; gap:6px; }
+.pill-toggle button{ padding:6px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface); font-size:12px; }
+.pill-toggle button.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+/* ---------- Auth ---------- */
+.auth-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); padding:20px; }
+.auth-card{ width:380px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:30px 26px; }
+.auth-brand{ display:flex; align-items:center; gap:11px; margin-bottom:22px; }
+.auth-brand .brand-mark{ width:38px; height:38px; border:1px solid var(--border); }
+.auth-tabs{ display:flex; gap:3px; margin-bottom:20px; background:var(--surface-alt); border-radius:8px; padding:3px; }
+.auth-tab{ flex:1; padding:8px; border-radius:6px; border:none; background:none; font-size:12.6px; font-weight:600; color:var(--ink-soft); }
+.auth-tab.active{ background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(19,26,43,0.08); }
+.auth-link{ background:none; border:none; color:var(--accent-dark); font-size:12.2px; padding:0; font-weight:600; }
+.auth-foot{ text-align:center; margin-top:16px; font-size:12.2px; color:var(--ink-soft); }
+.auth-error{ background:var(--critical-soft); color:var(--critical); padding:9px 11px; border-radius:7px; font-size:12.2px; margin-bottom:14px; }
+.auth-success{ background:var(--accent-soft); color:var(--accent-dark); padding:9px 11px; border-radius:7px; font-size:12.2px; margin-bottom:14px; }
+.logout-btn{ display:flex; align-items:center; gap:6px; padding:6px 11px; border-radius:8px; border:1px solid var(--border); background:var(--surface-alt); font-size:12.3px; font-weight:500; }
+.logout-btn:hover{ border-color:var(--critical); color:var(--critical); }
+
+.password-wrap{ position:relative; }
+.password-wrap input{ padding-right:56px !important; }
+.password-toggle{
+  position:absolute; right:5px; top:50%; transform:translateY(-50%);
+  background:none; border:none; font-size:11px; font-weight:600; color:var(--accent-dark);
+  padding:6px 8px; border-radius:5px; letter-spacing:0.2px;
+}
+.password-toggle:hover{ background:var(--accent-soft); }
+.password-match{ font-size:11.3px; margin-top:5px; }
+.password-match.ok{ color:var(--st-res); }
+.password-match.bad{ color:var(--critical); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ================= DATA ================= */
+
+const LOGO_SRC = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBYRXhpZgAATU0AKgAAAAgAAgESAAMAAAABAAEAAIdpAAQAAAABAAAAJgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAACgKADAAQAAAABAAACgAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgCgAKAAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwQDAwMEBQQEBAQFBwUFBQUFBwgHBwcHBwcICAgICAgICAoKCgoKCgsLCwsLDQ0NDQ0NDQ0NDf/bAEMBAgICAwMDBgMDBg0JBwkNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDf/dAAQAKP/aAAwDAQACEQMRAD8A/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9D9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/0f38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//S/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9P9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/1P38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//V/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9b9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/1/38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiioLq6t7K3ku7uRYoYlLySOQqqoGSSTwABQ2NJt2RPXL+JvGnhbwbZnUPFGp22mwDo1xIqFj6KCcsfYCvz8+O37ckWnzXPhn4OiO6mQtHLrUw3Qqeh+zp/wAtCP77fL6Bq/OfUfHnijX9Xk1nxPqNzq9zOcySXUhdv+AZ4QDsAAPavz3iDjylhYyp5fFVKi7u0fv6/LTzP6P4F+jlnGbUY43OJfV6b1UbXqNem0f+3tf7p+t/i39trwDpTvb+FtOvNbkUkCUgW0Bx3BfLkf8AAa8G1f8Abd+I90zDR9J0uwQn5fMElwwHud0Y/Svii2uoLyITW7bl6e4PoR2NWK/Cs08SOI69RxnW9n5RSVvnq/xP3nKvBHhHARUZYX2kl1qNyf3XUf8AyU+pn/bF+NLNkXOnKPQWnH6vV+x/bJ+MqzIrrpd122G1YE/isgr5TtbSa7fZCM+p7AeprsrKxhskwg3OR8znqfp6CvnK/iBndDX63O/bmZ6uK8PuE4R5f7PpX/wo+5PDv7ZOpqqJ4r8PROT997CcjH0SQEH/AL6r6M8H/tD/AAx8YMlvBqP9n3b4At78eQxJ7BiSjfg1fk5RXflPjVxHhJ/7RKNWPaSSfycbP77n5znXgjw1jYt4aDoy7xba+6V/wsfuhHKkqh4yGVhkEHIIqSvyM+Hfxw8dfDuaOKyu2v8ATQfmsbpi8e3/AGG+9Gfpx7V+jnwx+L/hX4n6d5ukymC/hUG4sZiBNH7j+8mejD8cV/QfBnidlXED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iigAooooAKKKKACiiigAooooAKKKKACg9KKD0oA//9D9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKD0ooPSgD//0f38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoPSiigD/0v38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//T/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9T9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/1f38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//W/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACijIoyKLAFFGRRkU7MAooyKMiizAKKMijIoswCijIoyKLMAooyKMikAUUZFGRQAUUZFGRQAUUZFGRQAUUZFJketAC0UmR60ZHrTswFopMj1oyPWizAWikyPWjI9aLMBaKTI9aMj1oswFopMj1oyPWizAWikyPWjI9aLMBaKTI9aMj1pALRSZHrRketAC0UmR60ZHrQAtFJketLkUAFFGRRkUAFFGRRkUAFFGRRkUAFFGRRkUAFFGRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB//2Q==';
+
+const NOW = new Date();
+
+function hoursAgo(h){ return new Date(NOW.getTime() - h*3600*1000); }
+function hoursAhead(h){ return new Date(NOW.getTime() + h*3600*1000); }
+
+const CATEGORIES = ['Hardware','Software','Network','Email','Access / Permission','Laptop / Desktop','Printer','VPN','Other'];
+const SUBCATEGORIES = ['General issue','Not working','Configuration','Installation request','Repair needed','Other'];
+const SLA_HOURS = { Critical:4, High:8, Medium:24, Low:72 };
+const STATUS_SEQ = ['OPEN','IN_PROGRESS','NEXT_UP','RESOLVED','CLOSED'];
+const STATUS_LABEL = { OPEN:'Open', IN_PROGRESS:'In progress', NEXT_UP:'Next up', RESOLVED:'Resolved', CLOSED:'Closed' };
+const STATUS_BADGE = { OPEN:'badge-open', IN_PROGRESS:'badge-prog', NEXT_UP:'badge-next', RESOLVED:'badge-res', CLOSED:'badge-closed' };
+const PRI_BADGE = { Critical:'pri-critical', High:'pri-high', Medium:'pri-medium', Low:'pri-low' };
+
+let ticketCounter = 132;
+function genTicketId(){ ticketCounter++; return 'IT-' + String(ticketCounter).padStart(6,'0'); }
+
+function mkTicket(o){
+  const created = o.createdAt || NOW;
+  return Object.assign({
+    comments:[], activity:[{ timestamp:created, actor:o.createdBy.name, action:'Created ticket' }],
+    resolutionNotes:'', assignedTo:null, updatedAt:created,
+  }, o, { slaDeadline: new Date(created.getTime() + SLA_HOURS[o.priority]*3600*1000) });
+}
+
+let tickets = [];
+
+
+let users = [
+  { id:'admin-1', name:'IT Helpdesk', email:'ithelpdesk@ibridgetechsoft.com', password:'iBT@2013', dept:'IT', role:'Admin', status:'active', lastActive:hoursAgo(0.1), isSuperAdmin:true },
+  { id:'am-1', name:'Vijay Kumar NS', email:'vijaykumar.ns@ibridgetechsoft.com', password:'iBT@2013', dept:'IT', role:'Asset Manager', status:'active', lastActive:hoursAgo(0.1), assetLocations:['Bangalore'] },
+  { id:'tech-1', name:'Akhil', email:'dm@ibridgetechsoft.com', password:'iBT@2013', dept:'IT', role:'Technician', status:'active', lastActive:hoursAgo(0.1) },
+  { id:'user-1', name:'Charan CS', email:'chran.cs@ibridgetechsoft.com', password:'Charan@2026', dept:'General', role:'User', status:'active', lastActive:hoursAgo(0.1) },
+];
+function getTechnicians(){ return users.filter(u => u.role === 'Technician' && u.status === 'active'); }
+
+let passwordResets = [];
+
+const ASSET_CATEGORIES = ['Laptop','Desktop','Monitor','Printer','Phone','Networking','Peripheral','Accessory','ID Card','Software License','Furniture','Other'];
+const ASSET_STATUSES = ['In Use','In Stock','Under Repair','Retired','Lost'];
+const LOCATIONS = ['Hyderabad','Bangalore','Noida','Remote','Others'];
+let assetCounter = 100;
+function genAssetId(){ assetCounter++; return 'AST-' + String(assetCounter).padStart(6,'0'); }
+
+let assets = [];
+
+let auditLog = [];
+
+let notifications = {
+  user: [],
+  technician: [],
+  admin: [],
+  assetmanager: [],
+};
+
+/* ================= STATE ================= */
+const state = {
+  authenticated: false,
+  authView: 'login',
+  authError: '',
+  role: 'user',
+  view: 'new-ticket',
+  selectedTicketId: null,
+  filter: { status:'all', priority:'all', category:'all', q:'' },
+  userTab: 'pending',
+  roleMenuOpen: false,
+  notifOpen: false,
+  commentDraft: '',
+  commentInternal: false,
+  toast: null,
+  assetFilter: { category:'all', status:'all', q:'', location:'all' },
+  assetFormOpen: false,
+  assetEditingId: null,
+  assetImportMsg: null,
+  currentUserId: null,
+  autoExport: false,
+  modal: null,
+  exportFolderHandle: null,
+  exportFolderName: null,
+  dailyAutoExportEnabled: false,
+  lastAutoExportDate: null,
+};
+
+/* ================= AUTH ================= */
+function pwFieldHtml(id, label, placeholder, autocomplete){
+  return '<div class="field"><label>'+label+'</label><div class="password-wrap">' +
+    '<input type="password" id="'+id+'" placeholder="'+placeholder+'" autocomplete="'+autocomplete+'"' + (id==='su-confirm' ? ' oninput="checkPasswordMatch()"' : '') + '>' +
+    '<button type="button" class="password-toggle" id="'+id+'-toggle" onclick="togglePasswordVisibility(\''+id+'\')">Show</button>' +
+  '</div>' + (id==='su-confirm' ? '<div class="password-match" id="password-match-msg"></div>' : '') + '</div>';
+}
+
+function togglePasswordVisibility(id){
+  const input = document.getElementById(id);
+  const btn = document.getElementById(id+'-toggle');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.innerText = showing ? 'Show' : 'Hide';
+}
+
+function checkPasswordMatch(){
+  const pw = document.getElementById('su-password').value;
+  const confirm = document.getElementById('su-confirm').value;
+  const msg = document.getElementById('password-match-msg');
+  if (!confirm){ msg.innerText = ''; msg.className = 'password-match'; return; }
+  if (pw === confirm){ msg.innerText = 'Passwords match'; msg.className = 'password-match ok'; }
+  else { msg.innerText = "Passwords don't match yet"; msg.className = 'password-match bad'; }
+}
+
+function switchAuthView(view){ state.authView = view; state.authError = ''; render(); }
+
+function attemptLogin(){
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password){ state.authError = 'Enter your email and password.'; render(); return; }
+  const match = users.find(u => u.email.toLowerCase() === email && u.password === password);
+  if (!match){ state.authError = 'Incorrect email or password.'; render(); return; }
+  if (match.status === 'disabled'){ state.authError = 'This account has been disabled. Contact an administrator.'; render(); return; }
+  if (match.status === 'pending'){ state.authError = 'Your registration is still pending admin approval.'; render(); return; }
+  state.authenticated = true;
+  state.authError = '';
+  state.currentUserId = match.id;
+  match.lastActive = new Date();
+  const roleKey = match.role === 'Admin' ? 'admin' : match.role === 'Technician' ? 'technician' : match.role === 'Asset Manager' ? 'assetmanager' : 'user';
+  switchRole(roleKey);
+}
+
+function doSignup(){
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const dept = document.getElementById('su-dept').value.trim();
+  const pw = document.getElementById('su-password').value;
+  const pw2 = document.getElementById('su-confirm').value;
+  if (!name || !email || !dept || !pw || !pw2){ state.authError = 'Fill in every field to create an account.'; render(); return; }
+  if (pw !== pw2){ state.authError = 'Passwords don\'t match.'; render(); return; }
+  if (users.some(u => u.email === email)){ state.authError = 'An account with this email already exists.'; render(); return; }
+  users.push({ id:'p'+Date.now(), name, email, dept, password:pw, requestedRole:'User', status:'pending', requestedAt:new Date() });
+  notify('admin', 'New registration pending: ' + name);
+  state.authView = 'signup-done';
+  state.authError = '';
+  render();
+}
+
+function doForgotPassword(){
+  const email = document.getElementById('fp-email').value.trim().toLowerCase();
+  if (!email){ state.authError = 'Enter the email on your account.'; render(); return; }
+  const owner = users.find(u => u.email === email);
+  passwordResets.unshift({ id:'pr'+Date.now(), userName: owner ? owner.name : email.split('@')[0], email, requestedAt:new Date(), status:'pending' });
+  notify('admin', 'Password reset requested by ' + (owner ? owner.name : email));
+  state.authView = 'forgot-done';
+  state.authError = '';
+  render();
+}
+
+function logout(){
+  state.authenticated = false;
+  state.authView = 'login';
+  state.authError = '';
+  state.roleMenuOpen = false;
+  state.notifOpen = false;
+  state.selectedTicketId = null;
+  state.currentUserId = null;
+  render();
+}
+
+function switchRole(role){
+  state.role = role;
+  state.selectedTicketId = null;
+  state.roleMenuOpen = false;
+  state.view = role === 'admin' ? 'dashboard' : (role === 'technician' ? 'tech-assigned' : (role === 'assetmanager' ? 'assets' : 'new-ticket'));
+  render();
+}
+function switchView(view){ state.view = view; state.selectedTicketId = null; render(); }
+
+function currentPersona(){
+  const u = users.find(x => x.id === state.currentUserId);
+  if (!u) return { id:'', name:'—', role:roleLabel(state.role), dept:'—', email:'', assetLocations:[], isSuperAdmin:false };
+  return { id:u.id, name:u.name, role:u.role || roleLabel(state.role), dept:u.dept, email:u.email, assetLocations:u.assetLocations || [], isSuperAdmin:!!u.isSuperAdmin };
+}
+function openTicket(id){ state.selectedTicketId = id; render(); }
+function toggleRoleMenu(){ state.roleMenuOpen = !state.roleMenuOpen; state.notifOpen = false; render(); }
+function toggleNotif(){ state.notifOpen = !state.notifOpen; state.roleMenuOpen = false; render(); }
+function setFilter(key, val){ state.filter[key] = val; render(); }
+function setUserTab(tab){ state.userTab = tab; render(); }
+
+/* ================= HELPERS ================= */
+function fmtDateTime(d){
+  return d.toLocaleDateString('en-IN',{ day:'2-digit', month:'short' }) + ' · ' + d.toLocaleTimeString('en-IN',{ hour:'2-digit', minute:'2-digit' });
+}
+function fmtRelative(d){
+  const mins = Math.round((NOW - d) / 60000);
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.round(mins/60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.round(hrs/24) + 'd ago';
+}
+function getTicket(id){ return tickets.find(t => t.id === id); }
+function initials(name){ return name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase(); }
+function esc(s){ const d=document.createElement('div'); d.innerText = s==null?'':s; return d.innerHTML; }
+
+function logAudit(actorName, actorRole, action, ticketId, oldValue, newValue){
+  auditLog.unshift({ timestamp:new Date(), user:actorName, role:actorRole, action, ticketId, oldValue, newValue });
+}
+function notify(role, text){
+  notifications[role].unshift({ text, time:new Date() });
+}
+function addActivity(ticket, actor, action){
+  ticket.activity.push({ timestamp:new Date(), actor, action });
+  ticket.updatedAt = new Date();
+}
+
+/* Auto-export: when enabled in Settings, silently re-download the relevant
+   dataset as CSV every time it changes, so an Excel copy is always current. */
+function maybeAutoExport(dataset){
+  if (!state.autoExport) return;
+  if (dataset === 'tickets') exportTicketsCSV();
+  else if (dataset === 'users') exportUsersCSV();
+  else if (dataset === 'assets') exportAssetsCSV();
+}
+function toggleAutoExport(on){
+  state.autoExport = on;
+  render();
+}
+
+/* ================= MODAL (replaces native prompt/alert/confirm — those get
+   silently blocked inside sandboxed iframe previews, which is why buttons
+   that used them could look "broken") ================= */
+function openModal(cfg){
+  state.modal = cfg;
+  render();
+  const el = document.getElementById('modal-input');
+  if (el) el.focus();
+}
+function closeModal(){ state.modal = null; render(); }
+
+function confirmModal(){
+  const m = state.modal;
+  if (!m) return;
+  if (m.kind === 'set-password'){
+    const val = document.getElementById('modal-input').value;
+    if (!val){
+      const err = document.getElementById('modal-error');
+      if (err) err.style.display = 'block';
+      return;
+    }
+    if (m.action === 'admin-reset'){ doAdminResetPassword(m.targetId, val); return; }
+  } else if (m.kind === 'confirm-delete-asset'){
+    doDeleteAsset(m.targetId);
+  } else if (m.kind === 'confirm-approve-reset'){
+    doApproveReset(m.targetId);
+    return; // doApproveReset opens the follow-up info modal itself
+  } else if (m.kind === 'info'){
+    closeModal();
+    return;
+  }
+  closeModal();
+}
+
+function modalHtml(){
+  const m = state.modal;
+  if (!m) return '';
+  let body = '';
+  if (m.kind === 'set-password'){
+    body = '<div class="field" style="margin-bottom:4px"><label>New password</label><input type="text" id="modal-input" placeholder="Enter a new password" autocomplete="off"></div>' +
+      '<div id="modal-error" class="hint" style="display:none;color:var(--critical);margin-bottom:8px">Enter a password first.</div>';
+  }
+  if (m.kind === 'info' && m.copyValue){
+    body = '<div class="modal-copybox">'+esc(m.copyValue)+'</div><div class="hint">Tap to select, then copy.</div>';
+  }
+  const singleButton = m.kind === 'info';
+  return '<div class="modal-overlay" onclick="if(event.target===this) closeModal()">' +
+    '<div class="modal-card">' +
+      '<div class="modal-title">'+esc(m.title)+'</div>' +
+      (m.message ? '<div class="modal-message">'+esc(m.message)+'</div>' : '') +
+      body +
+      '<div class="modal-actions">' +
+        (singleButton ? '' : '<button class="btn" onclick="closeModal()">Cancel</button>') +
+        '<button class="btn btn-primary" onclick="confirmModal()">' + (m.confirmLabel || (singleButton ? 'OK' : 'Confirm')) + '</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ================= ACTIONS ================= */
+function submitNewTicket(){
+  const subject = document.getElementById('nf-subject').value.trim();
+  const category = document.getElementById('nf-category').value;
+  const subcategory = document.getElementById('nf-subcategory').value;
+  const priority = document.getElementById('nf-priority').value;
+  const description = document.getElementById('nf-description').value.trim();
+  const location = document.getElementById('nf-location').value.trim();
+  const attachmentInput = document.getElementById('nf-attachment');
+  const errEl = document.getElementById('nf-error');
+
+  if (!subject || !category || !priority || !description){
+    errEl.style.display = 'block';
+    errEl.innerText = 'Please fill in subject, category, priority and description before submitting.';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const user = currentPersona();
+  const attachment = (attachmentInput.files && attachmentInput.files[0]) ? attachmentInput.files[0].name : null;
+  const id = genTicketId();
+  const t = mkTicket({
+    id, subject, category, subcategory: subcategory || 'General issue', priority, description,
+    attachment, location: location || 'Not specified', department: user.dept, createdBy:{id:user.id,name:user.name},
+    createdAt:new Date(), status:'OPEN',
+  });
+  tickets.unshift(t);
+  logAudit(user.name, 'User', 'Created ticket', id, '—', 'Open');
+  notify('admin', 'New ticket ' + id + ' raised by ' + user.name + (priority==='Critical' ? ' — Critical priority' : ''));
+  notify('user', 'Ticket ' + id + ' was created and is now open');
+  maybeAutoExport('tickets');
+
+  state.view = 'ticket-created';
+  state.selectedTicketId = id;
+  render();
+}
+
+function addCommentToTicket(id){
+  const box = document.getElementById('comment-box');
+  const text = box.value.trim();
+  if (!text) return;
+  const internalBox = document.getElementById('comment-internal');
+  const internal = internalBox ? internalBox.checked : false;
+  const t = getTicket(id);
+  const actor = currentPersona();
+  const roleLabel = state.role === 'admin' ? 'Admin' : (state.role === 'technician' ? 'Technician' : 'User');
+  t.comments.push({ author:actor.name, role:roleLabel, internal, text, timestamp:new Date() });
+  addActivity(t, actor.name, internal ? 'Added internal note' : 'Added comment');
+  if (state.role !== 'user' && !internal){
+    notify('user', (roleLabel) + ' ' + actor.name + ' commented on ' + id);
+  }
+  render();
+}
+
+function changeStatus(id, newStatus){
+  const t = getTicket(id);
+  const actor = currentPersona();
+  const roleLabel = state.role === 'admin' ? 'Admin' : 'Technician';
+  const old = STATUS_LABEL[t.status];
+  t.status = newStatus;
+  addActivity(t, actor.name, 'Status changed: ' + old + ' → ' + STATUS_LABEL[newStatus]);
+  logAudit(actor.name, roleLabel, 'Status change', id, old, STATUS_LABEL[newStatus]);
+  notify('user', 'Ticket ' + id + ' status changed to ' + STATUS_LABEL[newStatus]);
+  if (newStatus === 'RESOLVED') notify('user', 'Your ticket ' + id + ' was marked resolved');
+  if (newStatus === 'CLOSED') notify('user', 'Your ticket ' + id + ' was closed');
+  maybeAutoExport('tickets');
+  render();
+}
+
+function assignTechnician(id, techId){
+  const t = getTicket(id);
+  const actor = currentPersona();
+  const tech = getTechnicians().find(x => x.id === techId);
+  const old = t.assignedTo ? t.assignedTo.name : 'Unassigned';
+  t.assignedTo = tech ? { id:tech.id, name:tech.name } : null;
+  addActivity(t, actor.name, 'Assigned to ' + (tech ? tech.name : 'nobody'));
+  logAudit(actor.name, state.role === 'admin' ? 'Admin' : 'Technician', 'Assigned technician', id, old, tech ? tech.name : 'Unassigned');
+  if (tech) notify('technician', 'New ticket ' + id + ' assigned to you' + (t.priority==='Critical' ? ' — Critical priority' : ''));
+  maybeAutoExport('tickets');
+  render();
+}
+
+function changePriority(id, priority){
+  const t = getTicket(id);
+  const old = t.priority;
+  t.priority = priority;
+  t.slaDeadline = new Date(t.createdAt.getTime() + SLA_HOURS[priority]*3600*1000);
+  const actor = currentPersona();
+  addActivity(t, actor.name, 'Priority changed: ' + old + ' → ' + priority);
+  logAudit(actor.name, 'Admin', 'Priority change', id, old, priority);
+  maybeAutoExport('tickets');
+  render();
+}
+
+function changeCategory(id, category){
+  const t = getTicket(id);
+  const old = t.category;
+  t.category = category;
+  const actor = currentPersona();
+  addActivity(t, actor.name, 'Category changed: ' + old + ' → ' + category);
+  logAudit(actor.name, 'Admin', 'Category change', id, old, category);
+  maybeAutoExport('tickets');
+  render();
+}
+
+function saveResolutionAndResolve(id){
+  const notesEl = document.getElementById('resolution-notes');
+  const t = getTicket(id);
+  t.resolutionNotes = notesEl.value.trim();
+  changeStatus(id, 'RESOLVED');
+}
+
+function reopenTicket(id){
+  const t = getTicket(id);
+  const actor = currentPersona();
+  t.status = 'OPEN';
+  addActivity(t, actor.name, 'Reopened ticket (Admin override)');
+  logAudit(actor.name, 'Admin', 'Reopened ticket', id, 'Closed', 'Open');
+  notify('user', 'Ticket ' + id + ' was reopened by an admin');
+  maybeAutoExport('tickets');
+  render();
+}
+
+/* User management actions */
+function approveUser(id){
+  const u = users.find(x=>x.id===id);
+  u.status = 'active'; u.role = 'User'; u.lastActive = new Date();
+  logAudit(currentPersona().name, 'Admin', 'Approved registration', '—', 'Pending', 'Active');
+  maybeAutoExport('users');
+  render();
+}
+function rejectUser(id){
+  users = users.filter(x=>x.id!==id);
+  logAudit(currentPersona().name, 'Admin', 'Rejected registration', '—', 'Pending', 'Rejected');
+  maybeAutoExport('users');
+  render();
+}
+function disableUser(id){
+  const u = users.find(x=>x.id===id);
+  if (u.isSuperAdmin) return;
+  u.status = 'disabled';
+  logAudit(currentPersona().name, 'Admin', 'Disabled user', '—', 'Active', 'Disabled');
+  maybeAutoExport('users');
+  render();
+}
+function enableUser(id){
+  const u = users.find(x=>x.id===id);
+  u.status = 'active';
+  logAudit(currentPersona().name, 'Admin', 'Enabled user', '—', 'Disabled', 'Active');
+  maybeAutoExport('users');
+  render();
+}
+function getSuperAdmin(){ return users.find(u => u.isSuperAdmin); }
+function isCurrentUserSuperAdmin(){
+  const me = users.find(u => u.email === currentPersona().email);
+  return !!(me && me.isSuperAdmin);
+}
+
+function changeUserRole(id, role){
+  const u = users.find(x=>x.id===id);
+  const old = u.role;
+  if (old === role) return;
+  if (u.isSuperAdmin && role !== 'Admin'){
+    openModal({ kind:'info', title:'Transfer Super Admin first', message:'This is the current Super Admin. Transfer Super Admin access to someone else before changing their role.' });
+    return;
+  }
+  u.role = role;
+  if (role === 'Asset Manager' && !u.assetLocations) u.assetLocations = [];
+  if (role !== 'Asset Manager') delete u.assetLocations;
+  logAudit(currentPersona().name, 'Admin', 'Changed user role', '—', old, role);
+  notify('admin', u.name + "'s role changed from " + old + ' to ' + role);
+  maybeAutoExport('users');
+  render();
+}
+
+function setUserAssetLocation(id, location){
+  const u = users.find(x=>x.id===id);
+  u.assetLocations = location ? [location] : [];
+  logAudit(currentPersona().name, 'Admin', 'Updated asset manager location', '—', '—', u.name + ': ' + (location || 'None'));
+  maybeAutoExport('users');
+  render();
+}
+
+function transferSuperAdmin(id){
+  if (!isCurrentUserSuperAdmin()) return;
+  const target = users.find(x=>x.id===id);
+  if (!target || target.role !== 'Admin') return;
+  const previous = getSuperAdmin();
+  users.forEach(u => { u.isSuperAdmin = false; });
+  target.isSuperAdmin = true;
+  logAudit(currentPersona().name, 'Admin', 'Transferred Super Admin access', '—', previous ? previous.name : '—', target.name);
+  notify('admin', 'Super Admin access transferred to ' + target.name);
+  maybeAutoExport('users');
+  render();
+}
+function genTempPassword(){
+  return 'Temp' + Math.floor(1000 + Math.random()*9000) + '!';
+}
+function approveReset(id){
+  const r = passwordResets.find(x=>x.id===id);
+  openModal({ kind:'confirm-approve-reset', targetId:id, title:'Issue a temporary password?', message:'This approves ' + r.userName + '\'s reset request and generates a new temporary password for their account.', confirmLabel:'Approve & generate' });
+}
+function doApproveReset(id){
+  const r = passwordResets.find(x=>x.id===id);
+  r.status = 'approved';
+  const owner = users.find(u => u.email === r.email);
+  const temp = genTempPassword();
+  if (owner) owner.password = temp;
+  logAudit(currentPersona().name, 'Admin', 'Approved password reset', '—', 'Pending', 'Temp password issued');
+  maybeAutoExport('users');
+  openModal({ kind:'info', title:'Temporary password issued', message:'For ' + r.userName + ' (' + r.email + '). Share this with them securely — they should change it after logging in.', copyValue:temp });
+}
+function rejectReset(id){
+  const r = passwordResets.find(x=>x.id===id);
+  r.status = 'rejected';
+  logAudit(currentPersona().name, 'Admin', 'Rejected password reset', '—', 'Pending', 'Rejected');
+  render();
+}
+function adminResetPassword(id){
+  const u = users.find(x=>x.id===id);
+  if (!u) return;
+  openModal({ kind:'set-password', targetId:id, action:'admin-reset', title:'Set a new password', message:'For ' + u.name + ' (' + u.email + '). They can log in with this immediately.', confirmLabel:'Save password' });
+}
+function doAdminResetPassword(id, newPassword){
+  const u = users.find(x=>x.id===id);
+  if (!u) return;
+  u.password = newPassword;
+  logAudit(currentPersona().name, 'Admin', 'Reset user password directly', '—', '—', u.name);
+  maybeAutoExport('users');
+  openModal({ kind:'info', title:'Password updated', message:'The new password for ' + u.name + ' is now active.' });
+}
+
+/* ================= ASSETS ================= */
+function setAssetFilter(key, val){ state.assetFilter[key] = val; render(); }
+
+function openAssetForm(id){
+  if (id && state.role === 'assetmanager'){
+    const a = assets.find(x => x.id === id);
+    if (!a || !currentPersona().assetLocations.includes(a.location)) return;
+  }
+  state.assetFormOpen = true;
+  state.assetEditingId = id || null;
+  render();
+  const first = document.getElementById('asset-name');
+  if (first && first.scrollIntoView) first.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+function closeAssetForm(){
+  state.assetFormOpen = false;
+  state.assetEditingId = null;
+  render();
+}
+
+function readAssetForm(){
+  return {
+    name: document.getElementById('asset-name').value.trim(),
+    category: document.getElementById('asset-category').value,
+    serialNumber: document.getElementById('asset-serial').value.trim(),
+    assignedTo: document.getElementById('asset-assigned').value.trim(),
+    department: document.getElementById('asset-department').value.trim(),
+    location: document.getElementById('asset-location').value,
+    status: document.getElementById('asset-status').value,
+    vendor: document.getElementById('asset-vendor').value.trim(),
+    joiningDate: document.getElementById('asset-joining-date').value ? new Date(document.getElementById('asset-joining-date').value) : null,
+    assetAllotDate: document.getElementById('asset-allot-date').value ? new Date(document.getElementById('asset-allot-date').value) : null,
+    exitDate: document.getElementById('asset-exit-date').value ? new Date(document.getElementById('asset-exit-date').value) : null,
+    notes: document.getElementById('asset-notes').value.trim(),
+  };
+}
+
+function saveAssetForm(){
+  const data = readAssetForm();
+  const errEl = document.getElementById('asset-form-error');
+  const showErr = (msg) => { if (errEl){ errEl.style.display = 'block'; errEl.innerText = msg; } };
+  if (!data.name || !data.category || !data.status){
+    showErr('Name, category and status are required.');
+    return;
+  }
+  if (state.role === 'assetmanager' && !currentPersona().assetLocations.includes(data.location)){
+    showErr('You can only manage assets in your assigned location(s).');
+    return;
+  }
+  if (errEl) errEl.style.display = 'none';
+
+  const actor = currentPersona();
+  const actorRole = state.role === 'assetmanager' ? 'Asset Manager' : 'Admin';
+  if (state.assetEditingId){
+    const a = assets.find(x => x.id === state.assetEditingId);
+    Object.assign(a, data);
+    logAudit(actor.name, actorRole, 'Updated asset', a.id, '—', a.name);
+  } else {
+    const id = genAssetId();
+    assets.unshift(Object.assign({ id }, data));
+    logAudit(actor.name, actorRole, 'Added asset', id, '—', data.name);
+  }
+  maybeAutoExport('assets');
+  closeAssetForm();
+}
+
+function deleteAsset(id){
+  const a = assets.find(x => x.id === id);
+  if (!a) return;
+  if (state.role === 'assetmanager' && !currentPersona().assetLocations.includes(a.location)) return;
+  openModal({ kind:'confirm-delete-asset', targetId:id, title:'Remove this asset?', message:'"' + a.name + '" (' + a.id + ') will be removed from the register. This can\'t be undone.', confirmLabel:'Delete' });
+}
+function doDeleteAsset(id){
+  const a = assets.find(x => x.id === id);
+  if (!a) return;
+  const actor = currentPersona();
+  const actorRole = state.role === 'assetmanager' ? 'Asset Manager' : 'Admin';
+  assets = assets.filter(x => x.id !== id);
+  logAudit(actor.name, actorRole, 'Deleted asset', id, a.name, '—');
+  maybeAutoExport('assets');
+  render();
+}
+
+/* CSV import */
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  text = text.replace(/^\ufeff/, '');
+  for (let i = 0; i < text.length; i++){
+    const c = text[i], next = text[i+1];
+    if (inQuotes){
+      if (c === '"' && next === '"'){ field += '"'; i++; }
+      else if (c === '"'){ inQuotes = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ','){ row.push(field); field = ''; }
+      else if (c === '\r'){ /* skip */ }
+      else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length > 1 || (r.length===1 && r[0] !== ''));
+}
+
+const ASSET_CSV_FIELD_MAP = {
+  'asset id':'id', 'name':'name', 'category':'category', 'serial number':'serialNumber',
+  'assigned to':'assignedTo', 'department':'department', 'location':'location', 'status':'status',
+  'vendor':'vendor', 'joining date':'joiningDate', 'asset allot date':'assetAllotDate', 'exit date':'exitDate', 'notes':'notes',
+};
+
+function triggerAssetImport(){
+  const input = document.getElementById('asset-import-file');
+  if (!input.files || !input.files[0]){
+    state.assetImportMsg = { type:'error', text:'Choose a CSV file first.' };
+    render();
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    processAssetImport(e.target.result);
+  };
+  reader.onerror = function(){
+    state.assetImportMsg = { type:'error', text:'Could not read that file.' };
+    render();
+  };
+  reader.readAsText(input.files[0]);
+}
+
+function processAssetImport(text){
+  const rows = parseCSV(text);
+  if (!rows.length){
+    state.assetImportMsg = { type:'error', text:'That file looks empty.' };
+    render();
+    return;
+  }
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const idx = {};
+  header.forEach((h, i) => { if (ASSET_CSV_FIELD_MAP[h]) idx[ASSET_CSV_FIELD_MAP[h]] = i; });
+  if (idx.name === undefined){
+    state.assetImportMsg = { type:'error', text:'Couldn\'t find a "Name" column — check the file matches the exported format.' };
+    render();
+    return;
+  }
+
+  let added = 0, updated = 0, skipped = 0;
+  for (let r = 1; r < rows.length; r++){
+    const row = rows[r];
+    const get = (key) => idx[key] !== undefined ? (row[idx[key]] || '').trim() : '';
+    const name = get('name');
+    if (!name){ skipped++; continue; }
+    const data = {
+      name,
+      category: ASSET_CATEGORIES.includes(get('category')) ? get('category') : 'Other',
+      serialNumber: get('serialNumber'),
+      assignedTo: get('assignedTo'),
+      department: get('department'),
+      location: get('location'),
+      status: ASSET_STATUSES.includes(get('status')) ? get('status') : 'In Stock',
+      vendor: get('vendor'),
+      joiningDate: get('joiningDate') ? new Date(get('joiningDate')) : null,
+      assetAllotDate: get('assetAllotDate') ? new Date(get('assetAllotDate')) : null,
+      exitDate: get('exitDate') ? new Date(get('exitDate')) : null,
+      notes: get('notes'),
+    };
+    const providedId = get('id');
+    const existing = providedId ? assets.find(a => a.id === providedId) : null;
+    if (existing){
+      Object.assign(existing, data);
+      updated++;
+    } else {
+      const id = providedId || genAssetId();
+      assets.unshift(Object.assign({ id }, data));
+      added++;
+    }
+  }
+  logAudit(currentPersona().name, 'Admin', 'Imported assets from CSV', '—', '—', added + ' added, ' + updated + ' updated');
+  maybeAutoExport('assets');
+  state.assetImportMsg = { type:'success', text:'Import complete — ' + added + ' added, ' + updated + ' updated' + (skipped ? ', ' + skipped + ' row(s) skipped (missing name)' : '') + '.' };
+  render();
+}
+
+/* ================= NAV CONFIG ================= */
+const NAV = {
+  user: [
+    { group:'Tickets', items:[ ['new-ticket','Raise new ticket'], ['my-tickets','My tickets'] ] },
+    { group:'Account', items:[ ['profile','Profile'] ] },
+  ],
+  technician: [
+    { group:'Work queue', items:[ ['tech-assigned','Assigned to me'] ] },
+    { group:'Account', items:[ ['profile','Profile'] ] },
+  ],
+  admin: [
+    { group:'Overview', items:[ ['dashboard','Dashboard'] ] },
+    { group:'Tickets', items:[ ['admin-tickets','All tickets'] ] },
+    { group:'People', items:[ ['users','Users'], ['technicians','Technicians'] ] },
+    { group:'Assets', items:[ ['assets','Office assets'], ['no-asset-employees','Employees without assets'] ] },
+    { group:'Insights', items:[ ['reports','Reports'], ['audit','Audit logs'] ] },
+    { group:'System', items:[ ['export','Export data'], ['settings','Settings'] ] },
+  ],
+  assetmanager: [
+    { group:'Assets', items:[ ['assets','Office assets'] ] },
+    { group:'Account', items:[ ['profile','Profile'] ] },
+  ],
+};
+const VIEW_TITLE = {
+  'new-ticket':['Raise a new ticket','Tell us what\'s wrong — we\'ll route it to the right technician.'],
+  'my-tickets':['My tickets','Everything you\'ve raised, and where it stands.'],
+  'ticket-created':['Ticket submitted',''],
+  'profile':['Profile','Your account details.'],
+  'ticket-detail':['Ticket detail',''],
+  'tech-assigned':['Assigned to me','Tickets currently routed to you.'],
+  'dashboard':['Dashboard','Live snapshot of the helpdesk queue.'],
+  'admin-tickets':['All tickets','Every ticket in the system, filterable by status, priority and category.'],
+  'users':['User management','Approve signups, manage access, and handle password resets.'],
+  'technicians':['Technicians','Workload across the technician team.'],
+  'reports':['Reports','Aggregate performance across the helpdesk.'],
+  'audit':['Audit logs','Every status-changing action, recorded.'],
+  'export':['Export data','Download tickets, users, password resets, technicians and the audit log as CSV files.'],
+  'assets':['Office assets','Track laptops, monitors, licenses and other equipment assigned across the company.'],
+  'no-asset-employees':['Employees without assets','Active people who don\'t currently have any asset assigned to their name.'],
+  'settings':['Settings','System-wide configuration.'],
+};
+
+/* ================= RENDER ================= */
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = state.authenticated ? shellHtml() : authShellHtml();
+}
+
+function authShellHtml(){
+  let inner;
+  if (state.authView === 'login') inner = loginHtml();
+  else if (state.authView === 'signup') inner = signupHtml();
+  else if (state.authView === 'signup-done') inner = signupDoneHtml();
+  else if (state.authView === 'forgot') inner = forgotHtml();
+  else if (state.authView === 'forgot-done') inner = forgotDoneHtml();
+  return '<div class="auth-wrap"><div class="auth-card">' +
+    '<div class="auth-brand"><div class="brand-mark"><img src="'+LOGO_SRC+'" alt="iBridge Techsoft logo"></div><div><div style="font-weight:600;font-size:15px">iBridge Techsoft</div><div class="faint" style="font-size:10.5px;letter-spacing:0.5px">IT HELPDESK</div></div></div>' +
+    inner +
+  '</div></div>';
+}
+
+function loginHtml(){
+  return '<div class="auth-tabs"><button class="auth-tab active">Log in</button><button class="auth-tab" onclick="switchAuthView(\'signup\')">Sign up</button></div>' +
+    (state.authError ? '<div class="auth-error">'+esc(state.authError)+'</div>' : '') +
+    '<div class="field"><label>Email</label><input type="text" id="login-email" placeholder="name@company.com" autocomplete="email"></div>' +
+    pwFieldHtml('login-password','Password','Enter your password','current-password') +
+    '<button class="btn btn-primary btn-block" onclick="attemptLogin()">Log in</button>' +
+    '<div class="auth-foot"><button class="auth-link" onclick="switchAuthView(\'forgot\')">Forgot your password?</button></div>';
+}
+
+function signupHtml(){
+  return '<div class="auth-tabs"><button class="auth-tab" onclick="switchAuthView(\'login\')">Log in</button><button class="auth-tab active">Sign up</button></div>' +
+    (state.authError ? '<div class="auth-error">'+esc(state.authError)+'</div>' : '') +
+    '<div class="field"><label>Full name</label><input type="text" id="su-name" placeholder="Your name"></div>' +
+    '<div class="field"><label>Work email</label><input type="text" id="su-email" placeholder="name@company.com"></div>' +
+    '<div class="field"><label>Department</label><input type="text" id="su-dept" placeholder="e.g. Marketing"></div>' +
+    pwFieldHtml('su-password','Password','At least 6 characters','new-password') +
+    pwFieldHtml('su-confirm','Confirm password','Re-enter password','new-password') +
+    '<button class="btn btn-primary btn-block" onclick="doSignup()">Create account</button>' +
+    '<div class="auth-foot">New accounts need admin approval before you can log in.</div>';
+}
+
+function signupDoneHtml(){
+  return '<div class="auth-success">Registration submitted. An admin needs to approve your account before you can log in.</div>' +
+    '<button class="btn btn-block" onclick="switchAuthView(\'login\')">Back to log in</button>';
+}
+
+function forgotHtml(){
+  return (state.authError ? '<div class="auth-error">'+esc(state.authError)+'</div>' : '') +
+    '<div class="page-desc" style="margin-bottom:16px">Enter your account email. An admin will review the request and issue a temporary password.</div>' +
+    '<div class="field"><label>Email</label><input type="text" id="fp-email" placeholder="name@company.com"></div>' +
+    '<button class="btn btn-primary btn-block" onclick="doForgotPassword()">Request password reset</button>' +
+    '<div class="auth-foot"><button class="auth-link" onclick="switchAuthView(\'login\')">Back to log in</button></div>';
+}
+
+function forgotDoneHtml(){
+  return '<div class="auth-success">Your request has been sent to the admin team for approval.</div>' +
+    '<button class="btn btn-block" onclick="switchAuthView(\'login\')">Back to log in</button>';
+}
+
+function shellHtml(){
+  return '<div class="shell">' + sidebarHtml() + mainHtml() + '</div>' + modalHtml();
+}
+
+function sidebarHtml(){
+  const groups = NAV[state.role];
+  let nav = groups.map(g => (
+    '<div class="nav-group"><div class="nav-label">' + g.group + '</div>' +
+    g.items.map(([view,label]) =>
+      '<button class="nav-item ' + (state.view===view?'active':'') + '" onclick="switchView(\''+view+'\')">' +
+      '<span class="nav-dot"></span>' + label + '</button>'
+    ).join('') + '</div>'
+  )).join('');
+
+  return '<div class="sidebar">' +
+    '<div class="brand"><div class="brand-mark"><img src="'+LOGO_SRC+'" alt="iBridge Techsoft logo"></div><div><div class="brand-name">iBridge Techsoft</div><div class="brand-sub">IT HELPDESK</div></div></div>' +
+    nav +
+    '<div class="sidebar-foot"><div class="role-card"><b>' + currentPersona().name + '</b>' + roleLabel(state.role) + ' · ' + currentPersona().dept + '</div></div>' +
+    '</div>';
+}
+
+function roleLabel(role){
+  if (role === 'admin') return isCurrentUserSuperAdmin() ? 'Super Admin' : 'Admin';
+  if (role === 'technician') return 'Technician';
+  if (role === 'assetmanager') return 'Asset Manager';
+  return 'User';
+}
+
+function mainHtml(){
+  const [title, desc] = VIEW_TITLE[state.view] || ['',''];
+  return '<div class="main">' + topbarHtml(title, desc) + '<div class="content">' + viewHtml() + '</div></div>';
+}
+
+function topbarHtml(title, desc){
+  const notifs = notifications[state.role] || [];
+  const account = state.role === 'admin' ? adminRoleSwitchHtml() : staticAccountBadgeHtml();
+  return '<div class="topbar">' +
+    '<div><div class="topbar-title">' + title + '</div>' + (desc?'<div class="topbar-sub">'+desc+'</div>':'') + '</div>' +
+    '<div class="topbar-right">' +
+      '<div class="role-switch">' +
+        '<button class="bell" onclick="toggleNotif()"><i>&#128276;</i>' + (notifs.length? '<span class="bell-badge">'+notifs.length+'</span>':'') + '</button>' +
+        '<div class="dropdown notif-panel ' + (state.notifOpen?'open':'') + '">' +
+          (notifs.length ? notifs.map(n => '<div class="notif-item"><div class="notif-text">'+esc(n.text)+'</div><div class="notif-time">'+fmtRelative(n.time)+'</div></div>').join('') : '<div class="notif-item notif-text">No notifications</div>') +
+        '</div>' +
+      '</div>' +
+      account +
+      '<button class="logout-btn" onclick="logout()">Log out</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function adminRoleSwitchHtml(){
+  return '<div class="role-switch">' +
+    '<button class="role-btn" onclick="toggleRoleMenu()"><span class="avatar">' + initials(currentPersona().name) + '</span>' + roleLabel(state.role) + ' view ▾</button>' +
+    '<div class="dropdown ' + (state.roleMenuOpen?'open':'') + '">' +
+      '<div style="padding:6px 10px 4px;font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Admin preview</div>' +
+      '<button class="dropdown-item ' + (state.role==='user'?'active':'') + '" onclick="switchRole(\'user\')">View as User</button>' +
+      '<button class="dropdown-item ' + (state.role==='technician'?'active':'') + '" onclick="switchRole(\'technician\')">View as Technician</button>' +
+      '<button class="dropdown-item ' + (state.role==='admin'?'active':'') + '" onclick="switchRole(\'admin\')">View as Admin</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function staticAccountBadgeHtml(){
+  return '<div class="role-btn" style="cursor:default"><span class="avatar">' + initials(currentPersona().name) + '</span>' + roleLabel(state.role) + '</div>';
+}
+
+function viewHtml(){
+  if (state.view === 'ticket-detail' && state.selectedTicketId) return ticketDetailHtml(state.selectedTicketId);
+  switch(state.view){
+    case 'new-ticket': return newTicketFormHtml();
+    case 'ticket-created': return ticketCreatedHtml();
+    case 'my-tickets': return myTicketsHtml();
+    case 'profile': return profileHtml();
+    case 'tech-assigned': return techAssignedHtml();
+    case 'dashboard': return dashboardHtml();
+    case 'admin-tickets': return adminTicketsHtml();
+    case 'users': return usersHtml();
+    case 'technicians': return techniciansHtml();
+    case 'reports': return reportsHtml();
+    case 'audit': return auditHtml();
+    case 'export': return exportDataHtml();
+    case 'assets': return assetsHtml();
+    case 'no-asset-employees': return noAssetEmployeesHtml();
+    case 'settings': return settingsHtml();
+    default: return '';
+  }
+}
+
+/* ---------- New ticket ---------- */
+function newTicketFormHtml(){
+  return '<div class="card" style="max-width:640px">' +
+    '<div id="nf-error" class="banner banner-warn" style="display:none"></div>' +
+    '<div class="field"><label>Subject <span class="req">*</span></label><input type="text" id="nf-subject" placeholder="Short summary of the issue"></div>' +
+    '<div class="grid grid-2">' +
+      '<div class="field"><label>Category <span class="req">*</span></label><select id="nf-category"><option value="">Select category</option>' + CATEGORIES.map(c=>'<option value="'+c+'">'+c+'</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Sub-category</label><select id="nf-subcategory"><option value="">Select sub-category</option>' + SUBCATEGORIES.map(c=>'<option value="'+c+'">'+c+'</option>').join('') + '</select></div>' +
+    '</div>' +
+    '<div class="field"><label>Priority <span class="req">*</span></label><select id="nf-priority"><option value="">Select priority</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option></select><div class="hint">Critical tickets are routed to a technician immediately and notify the admin team.</div></div>' +
+    '<div class="field"><label>Description <span class="req">*</span></label><textarea id="nf-description" placeholder="What happened? Include any error messages and when it started."></textarea></div>' +
+    '<div class="field"><label>Attachment</label><input type="file" id="nf-attachment"></div>' +
+    '<div class="field"><label>Location</label><input type="text" id="nf-location" placeholder="e.g. Hyderabad — 4th Floor, Desk 412"></div>' +
+    '<button class="btn btn-primary btn-block" onclick="submitNewTicket()">Submit ticket</button>' +
+  '</div>';
+}
+
+function ticketCreatedHtml(){
+  const t = getTicket(state.selectedTicketId);
+  return '<div class="card" style="max-width:520px;text-align:center;padding:36px 28px">' +
+    '<div style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px">✓</div>' +
+    '<div style="font-size:16px;font-weight:600;margin-bottom:4px">Ticket submitted</div>' +
+    '<div class="muted" style="margin-bottom:16px;font-size:13px">Your ticket is now open and waiting for a technician.</div>' +
+    '<div class="tid" style="font-size:16px;display:block;margin-bottom:20px">' + t.id + '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:center">' +
+      '<button class="btn" onclick="switchView(\'my-tickets\')">View my tickets</button>' +
+      '<button class="btn btn-primary" onclick="openTicket(\''+t.id+'\');state.view=\'ticket-detail\';render();">Open ticket</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ---------- My tickets (user) ---------- */
+function myTicketsHtml(){
+  const mine = tickets.filter(t => t.createdBy.id === currentPersona().id).sort((a,b)=>b.createdAt-a.createdAt);
+  if (!mine.length) return '<div class="card empty">You haven\'t raised any tickets yet.</div>';
+  return '<div class="card" style="padding:0">' + ticketTableHtml(mine, false) + '</div>';
+}
+
+function ticketTableHtml(list, showAssignee){
+  return '<table><thead><tr><th>Ticket</th><th>Subject</th><th>Priority</th><th>Status</th>' + (showAssignee?'<th>Assigned to</th>':'') + '<th>Created</th><th>Updated</th></tr></thead><tbody>' +
+    list.map(t => (
+      '<tr class="row-click" onclick="openTicket(\''+t.id+'\');state.view=\'ticket-detail\';render();">' +
+      '<td class="tid">'+t.id+'</td>' +
+      '<td>'+esc(t.subject)+'</td>' +
+      '<td><span class="badge '+PRI_BADGE[t.priority]+'">'+t.priority+'</span></td>' +
+      '<td><span class="badge '+STATUS_BADGE[t.status]+'">'+STATUS_LABEL[t.status]+'</span></td>' +
+      (showAssignee? '<td class="muted">'+(t.assignedTo?esc(t.assignedTo.name):'—')+'</td>':'') +
+      '<td class="faint mono" style="font-size:11.5px">'+fmtDateTime(t.createdAt)+'</td>' +
+      '<td class="faint mono" style="font-size:11.5px">'+fmtRelative(t.updatedAt)+'</td>' +
+      '</tr>'
+    )).join('') +
+  '</tbody></table>';
+}
+
+/* ---------- Profile ---------- */
+function profileHtml(){
+  const u = currentPersona();
+  const email = u.email || (u.name.toLowerCase().replace(' ','.')+'@company.com');
+  let html = '<div class="card" style="max-width:420px">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">' +
+      '<div class="avatar" style="width:44px;height:44px;font-size:15px">'+initials(u.name)+'</div>' +
+      '<div><div style="font-weight:600;font-size:15px">'+u.name+'</div><div class="muted" style="font-size:12.5px">'+roleLabel(state.role)+'</div></div>' +
+    '</div>' +
+    '<div class="info-row"><span class="k">Department</span><span class="v">'+u.dept+'</span></div>' +
+    '<div class="info-row"><span class="k">Email</span><span class="v mono" style="font-size:12px">'+email+'</span></div>' +
+    '<div class="info-row"><span class="k">Role</span><span class="v">'+roleLabel(state.role)+'</span></div>';
+  if (state.role === 'assetmanager'){
+    html += '<div class="info-row"><span class="k">Locations managed</span><span class="v">'+(u.assetLocations.length ? esc(u.assetLocations.join(', ')) : 'None assigned yet')+'</span></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ---------- Ticket detail ---------- */
+function railHtml(status){
+  const idx = STATUS_SEQ.indexOf(status);
+  return '<div class="rail">' + STATUS_SEQ.map((s,i) => {
+    const cls = i < idx ? 'done' : (i === idx ? 'current' : '');
+    return '<div class="rail-step '+cls+'"><div class="rail-line"></div><div class="rail-node">'+(i<idx?'✓':(i+1))+'</div><div class="rail-label">'+STATUS_LABEL[s]+'</div></div>';
+  }).join('') + '</div>';
+}
+
+function ticketDetailHtml(id){
+  const t = getTicket(id);
+  if (!t) return '<div class="card empty">Ticket not found.</div>';
+  const role = state.role;
+  const isOwner = role === 'user' && t.createdBy.id === currentPersona().id;
+  const isAssignedTech = role === 'technician' && t.assignedTo && t.assignedTo.id === currentPersona().id;
+  const isAdmin = role === 'admin';
+  const canManage = isAdmin || isAssignedTech;
+
+  let backView = role === 'admin' ? 'admin-tickets' : (role === 'technician' ? 'tech-assigned' : 'my-tickets');
+
+  let html = '<button class="back-link" onclick="switchView(\''+backView+'\')">&larr; Back</button>';
+
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">' +
+    '<div><span class="tid" style="font-size:14px">'+t.id+'</span> <span class="badge '+PRI_BADGE[t.priority]+'" style="margin-left:8px">'+t.priority+'</span></div>' +
+    '</div>' +
+    '<div style="font-size:18px;font-weight:600;margin:6px 0 18px">'+esc(t.subject)+'</div>';
+
+  if (t.status === 'CLOSED' && role === 'user'){
+    html += '<div class="banner banner-closed">This ticket is closed and can\'t be reopened. If the issue comes back, please raise a new ticket. <button class="btn btn-sm" style="margin-left:auto" onclick="switchView(\'new-ticket\')">Raise new ticket</button></div>';
+  }
+
+  html += railHtml(t.status);
+
+  html += '<div class="detail-grid">';
+
+  /* left column */
+  html += '<div>';
+  html += '<div class="card" style="margin-bottom:14px">' +
+    '<div class="section-title">Description</div>' +
+    '<div style="font-size:13px;line-height:1.7;color:var(--ink)">'+esc(t.description)+'</div>' +
+    (t.attachment ? '<div class="hint" style="margin-top:10px">📎 '+esc(t.attachment)+'</div>' : '') +
+    '</div>';
+
+  if (t.resolutionNotes){
+    html += '<div class="card" style="margin-bottom:14px;border-color:var(--st-res)">' +
+      '<div class="section-title" style="color:var(--st-res)">Resolution notes</div>' +
+      '<div style="font-size:13px;line-height:1.6">'+esc(t.resolutionNotes)+'</div></div>';
+  }
+
+  /* comments */
+  const visibleComments = t.comments.filter(c => role !== 'user' || !c.internal);
+  html += '<div class="card" style="margin-bottom:14px">' +
+    '<div class="section-title">Comments ('+visibleComments.length+')</div>';
+  if (visibleComments.length){
+    html += visibleComments.map(c => (
+      '<div class="comment '+(c.internal?'internal':'')+'">' +
+        '<div class="comment-head"><span class="comment-author">'+esc(c.author)+'</span><span class="comment-role">'+c.role+'</span>' + (c.internal?'<span class="internal-tag">INTERNAL</span>':'') + '<span class="comment-time">'+fmtRelative(c.timestamp)+'</span></div>' +
+        '<div class="comment-text">'+esc(c.text)+'</div>' +
+      '</div>'
+    )).join('');
+  } else {
+    html += '<div class="muted" style="font-size:12.5px">No comments yet.</div>';
+  }
+
+  if (t.status !== 'CLOSED'){
+    html += '<div style="margin-top:14px;border-top:1px solid var(--border-soft);padding-top:14px">' +
+      '<textarea id="comment-box" placeholder="'+(role==='user'?'Add more information for the technician…':'Add a comment…')+'" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 11px;min-height:64px;background:var(--surface-alt)"></textarea>';
+    if (role !== 'user'){
+      html += '<label class="checkbox-row"><input type="checkbox" id="comment-internal"> Internal note (hidden from the user)</label>';
+    }
+    html += '<button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="addCommentToTicket(\''+t.id+'\')">Post comment</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  /* activity */
+  html += '<div class="card">' +
+    '<div class="section-title">Activity history</div>' +
+    t.activity.slice().reverse().map(a => (
+      '<div class="activity-item"><span class="activity-dot"></span><div><div class="activity-text">'+esc(a.actor)+' — '+esc(a.action)+'</div><div class="activity-time">'+fmtDateTime(a.timestamp)+'</div></div></div>'
+    )).join('') +
+  '</div>';
+
+  html += '</div>'; /* end left col */
+
+  /* right column */
+  html += '<div>';
+  html += '<div class="card" style="margin-bottom:14px">' +
+    '<div class="section-title">Ticket information</div>' +
+    '<div class="info-row"><span class="k">Created by</span><span class="v">'+esc(t.createdBy.name)+'</span></div>' +
+    '<div class="info-row"><span class="k">Department</span><span class="v">'+esc(t.department)+'</span></div>' +
+    '<div class="info-row"><span class="k">Category</span><span class="v">'+esc(t.category)+'</span></div>' +
+    '<div class="info-row"><span class="k">Sub-category</span><span class="v">'+esc(t.subcategory)+'</span></div>' +
+    '<div class="info-row"><span class="k">Location</span><span class="v">'+esc(t.location)+'</span></div>' +
+    '<div class="info-row"><span class="k">Created</span><span class="v mono" style="font-size:11.5px">'+fmtDateTime(t.createdAt)+'</span></div>' +
+    '<div class="info-row"><span class="k">SLA deadline</span><span class="v mono" style="font-size:11.5px">'+fmtDateTime(t.slaDeadline)+'</span></div>' +
+    '<div class="info-row"><span class="k">Assigned to</span><span class="v">'+(t.assignedTo?esc(t.assignedTo.name):'Unassigned')+'</span></div>' +
+  '</div>';
+
+  if (isAdmin){
+    html += '<div class="card" style="margin-bottom:14px">' +
+      '<div class="section-title">Admin controls</div>' +
+      '<div class="field"><label>Assign technician</label><select onchange="assignTechnician(\''+t.id+'\', this.value)">' +
+        '<option value="">Unassigned</option>' + getTechnicians().map(tech => '<option value="'+tech.id+'" '+(t.assignedTo&&t.assignedTo.id===tech.id?'selected':'')+'>'+tech.name+'</option>').join('') +
+      '</select></div>' +
+      '<div class="field"><label>Priority</label><select onchange="changePriority(\''+t.id+'\', this.value)">' +
+        ['Low','Medium','High','Critical'].map(p=>'<option value="'+p+'" '+(t.priority===p?'selected':'')+'>'+p+'</option>').join('') +
+      '</select></div>' +
+      '<div class="field" style="margin-bottom:6px"><label>Category</label><select onchange="changeCategory(\''+t.id+'\', this.value)">' +
+        CATEGORIES.map(c=>'<option value="'+c+'" '+(t.category===c?'selected':'')+'>'+c+'</option>').join('') +
+      '</select></div>' +
+    '</div>';
+  }
+
+  if (canManage && t.status !== 'CLOSED'){
+    html += '<div class="card" style="margin-bottom:14px"><div class="section-title">Update status</div>';
+    const idx = STATUS_SEQ.indexOf(t.status);
+    if (t.status === 'OPEN') html += '<button class="btn btn-block" style="margin-bottom:8px" onclick="changeStatus(\''+t.id+'\',\'IN_PROGRESS\')">Start progress</button>';
+    if (t.status === 'IN_PROGRESS') html += '<button class="btn btn-block" style="margin-bottom:8px" onclick="changeStatus(\''+t.id+'\',\'NEXT_UP\')">Move to next up</button>';
+    if (t.status === 'NEXT_UP'){
+      html += '<div class="field"><label>Resolution notes</label><textarea id="resolution-notes" placeholder="What was done to fix this?"></textarea></div>';
+      html += '<button class="btn btn-primary btn-block" onclick="saveResolutionAndResolve(\''+t.id+'\')">Mark resolved</button>';
+    }
+    if (t.status === 'RESOLVED'){
+      if (isAdmin || isAssignedTech){
+        html += '<button class="btn btn-primary btn-block" onclick="changeStatus(\''+t.id+'\',\'CLOSED\')">Close ticket</button>';
+      }
+      html += '<button class="btn btn-block" style="margin-top:8px" onclick="changeStatus(\''+t.id+'\',\'NEXT_UP\')">Reopen to next up</button>';
+    }
+    html += '</div>';
+  }
+
+  if (isAdmin && t.status === 'CLOSED'){
+    html += '<div class="card"><div class="section-title">Admin override</div>' +
+      '<div class="hint" style="margin-bottom:10px">Users can\'t reopen closed tickets. As Admin you can reopen this one if needed.</div>' +
+      '<button class="btn btn-block" onclick="reopenTicket(\''+t.id+'\')">Reopen ticket</button></div>';
+  }
+
+  if (isOwner && t.status !== 'CLOSED'){
+    html += '<div class="card"><div class="hint">You\'ll be notified here as soon as this ticket\'s status changes.</div></div>';
+  }
+
+  html += '</div>'; /* end right col */
+  html += '</div>'; /* end detail-grid */
+  return html;
+}
+
+/* ---------- Technician assigned ---------- */
+function techAssignedHtml(){
+  const mine = tickets.filter(t => t.assignedTo && t.assignedTo.id === currentPersona().id).sort((a,b)=>b.updatedAt-a.updatedAt);
+  const open = mine.filter(t=>t.status!=='CLOSED');
+  const closed = mine.filter(t=>t.status==='CLOSED');
+  let html = '<div class="grid grid-4" style="margin-bottom:18px">' +
+    statCard('Open', mine.filter(t=>t.status==='OPEN').length, 'st-open') +
+    statCard('In progress', mine.filter(t=>t.status==='IN_PROGRESS').length, 'st-prog') +
+    statCard('Next up', mine.filter(t=>t.status==='NEXT_UP').length, 'st-next') +
+    statCard('Resolved', mine.filter(t=>t.status==='RESOLVED').length, 'st-res') +
+  '</div>';
+  if (!open.length) html += '<div class="card empty" style="margin-bottom:14px">No active tickets assigned to you right now.</div>';
+  else html += '<div class="card" style="padding:0;margin-bottom:14px">' + ticketTableHtml(open, false) + '</div>';
+  if (closed.length){
+    html += '<div class="section-title" style="margin:18px 0 10px">Closed</div><div class="card" style="padding:0">' + ticketTableHtml(closed, false) + '</div>';
+  }
+  return html;
+}
+
+/* ---------- Admin dashboard ---------- */
+function statCard(label, num, cls){
+  return '<div class="stat-card '+cls+'"><div class="stat-num">'+num+'</div><div class="stat-label">'+label+'</div></div>';
+}
+
+function dashboardHtml(){
+  const counts = { OPEN:0, IN_PROGRESS:0, NEXT_UP:0, RESOLVED:0, CLOSED:0 };
+  tickets.forEach(t => counts[t.status]++);
+  const total = tickets.length;
+  const priCounts = { Critical:0, High:0, Medium:0, Low:0 };
+  tickets.forEach(t => priCounts[t.priority]++);
+  const catCounts = {};
+  CATEGORIES.forEach(c => catCounts[c] = 0);
+  tickets.forEach(t => catCounts[t.category]++);
+  const maxCat = Math.max(1, ...Object.values(catCounts));
+  const unassigned = tickets.filter(t => !t.assignedTo && t.status !== 'CLOSED').length;
+  const overdue = tickets.filter(t => t.status !== 'CLOSED' && t.status !== 'RESOLVED' && t.slaDeadline < NOW).length;
+  const today = tickets.filter(t => (NOW - t.createdAt) < 24*3600*1000).length;
+  const resolvedTickets = tickets.filter(t => t.status === 'RESOLVED' || t.status === 'CLOSED');
+  const avgResHrs = resolvedTickets.length ? Math.round(resolvedTickets.reduce((s,t)=> s + (t.updatedAt - t.createdAt)/3600000, 0) / resolvedTickets.length) : 0;
+
+  let html = '<div class="grid grid-4" style="margin-bottom:14px">' +
+    statCard('Open', counts.OPEN, 'st-open') +
+    statCard('In progress', counts.IN_PROGRESS, 'st-prog') +
+    statCard('Next up', counts.NEXT_UP, 'st-next') +
+    statCard('Resolved', counts.RESOLVED, 'st-res') +
+  '</div>';
+
+  html += '<div class="grid grid-4" style="margin-bottom:22px">' +
+    statCard('Closed', counts.CLOSED, '') +
+    statCard('Total tickets', total, '') +
+    statCard('Unassigned', unassigned, '') +
+    statCard('SLA overdue', overdue, '') +
+  '</div>';
+
+  html += '<div class="grid grid-2" style="margin-bottom:16px">';
+  html += '<div class="card"><div class="section-title">Tickets by priority</div>' +
+    ['Critical','High','Medium','Low'].map(p => (
+      '<div class="bar-row"><div class="bar-label">'+p+'</div><div class="bar-track"><div class="bar-fill" style="width:'+(priCounts[p]/Math.max(1,total)*100)+'%;background:var('+({Critical:'--critical',High:'--high',Medium:'--medium',Low:'--low'}[p])+')"></div></div><div class="bar-num">'+priCounts[p]+'</div></div>'
+    )).join('') +
+  '</div>';
+  html += '<div class="card"><div class="section-title">Tickets by category</div>' +
+    CATEGORIES.map(c => (
+      '<div class="bar-row"><div class="bar-label">'+c+'</div><div class="bar-track"><div class="bar-fill" style="width:'+(catCounts[c]/maxCat*100)+'%"></div></div><div class="bar-num">'+catCounts[c]+'</div></div>'
+    )).join('') +
+  '</div>';
+  html += '</div>';
+
+  html += '<div class="grid grid-4" style="margin-bottom:16px">' +
+    statCard('Avg resolution time', avgResHrs + 'h', '') +
+    statCard("Today's tickets", today, '') +
+    statCard('Technicians active', getTechnicians().length, '') +
+    statCard('Departments touched', new Set(tickets.map(t=>t.department)).size, '') +
+  '</div>';
+
+  html += '<div class="card"><div class="section-title">Tickets per technician</div>' +
+    getTechnicians().map(tech => {
+      const n = tickets.filter(t=>t.assignedTo && t.assignedTo.id===tech.id && t.status!=='CLOSED').length;
+      return '<div class="bar-row"><div class="bar-label">'+tech.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+(n/Math.max(1,total)*100*3)+'%"></div></div><div class="bar-num">'+n+'</div></div>';
+    }).join('') +
+  '</div>';
+
+  return html;
+}
+
+/* ---------- Admin tickets ---------- */
+function adminTicketsHtml(){
+  let list = tickets.slice();
+  const f = state.filter;
+  if (f.status !== 'all') list = list.filter(t => t.status === f.status);
+  if (f.priority !== 'all') list = list.filter(t => t.priority === f.priority);
+  if (f.category !== 'all') list = list.filter(t => t.category === f.category);
+  if (f.q) list = list.filter(t => (t.subject+t.id+t.createdBy.name).toLowerCase().includes(f.q.toLowerCase()));
+  list.sort((a,b)=>b.updatedAt-a.updatedAt);
+
+  let html = '<div class="filters">' +
+    '<input type="text" placeholder="Search by subject, ID or requester…" value="'+esc(f.q)+'" oninput="setFilter(\'q\', this.value)">' +
+    '<select onchange="setFilter(\'status\', this.value)">' +
+      '<option value="all" '+(f.status==='all'?'selected':'')+'>All statuses</option>' +
+      STATUS_SEQ.map(s=>'<option value="'+s+'" '+(f.status===s?'selected':'')+'>'+STATUS_LABEL[s]+'</option>').join('') +
+    '</select>' +
+    '<select onchange="setFilter(\'priority\', this.value)">' +
+      '<option value="all" '+(f.priority==='all'?'selected':'')+'>All priorities</option>' +
+      ['Critical','High','Medium','Low'].map(p=>'<option value="'+p+'" '+(f.priority===p?'selected':'')+'>'+p+'</option>').join('') +
+    '</select>' +
+    '<select onchange="setFilter(\'category\', this.value)">' +
+      '<option value="all" '+(f.category==='all'?'selected':'')+'>All categories</option>' +
+      CATEGORIES.map(c=>'<option value="'+c+'" '+(f.category===c?'selected':'')+'>'+c+'</option>').join('') +
+    '</select>' +
+  '</div>';
+
+  html += '<div class="card" style="padding:0">' + (list.length ? ticketTableHtml(list, true) : '<div class="empty">No tickets match these filters.</div>') + '</div>';
+  return html;
+}
+
+/* ---------- Users ---------- */
+function usersHtml(){
+  const tabs = [['pending','Pending signups'],['active','Active users'],['disabled','Disabled users'],['resets','Password reset requests']];
+  let html = '<div class="tabs">' + tabs.map(([k,l]) => '<button class="tab '+(state.userTab===k?'active':'')+'" onclick="setUserTab(\''+k+'\')">'+l+'</button>').join('') + '</div>';
+
+  if (state.userTab === 'pending'){
+    const pending = users.filter(u=>u.status==='pending');
+    html += pending.length ? '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Requested</th><th></th></tr></thead><tbody>' +
+      pending.map(u => (
+        '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td><td>'+esc(u.dept)+'</td><td class="faint">'+fmtRelative(u.requestedAt)+'</td>' +
+        '<td style="text-align:right"><button class="btn btn-sm" style="margin-right:6px" onclick="rejectUser(\''+u.id+'\')">Reject</button><button class="btn btn-primary btn-sm" onclick="approveUser(\''+u.id+'\')">Approve</button></td></tr>'
+      )).join('') + '</tbody></table></div>' : '<div class="card empty">No pending signups.</div>';
+  }
+
+  if (state.userTab === 'active'){
+    const active = users.filter(u=>u.status==='active');
+    const iAmSuper = isCurrentUserSuperAdmin();
+    html += '<div class="hint" style="margin-bottom:10px">Change the Role dropdown to grant Technician, Admin, or location-scoped Asset Manager access.' + (iAmSuper ? ' As Super Admin, you can also hand the ⭐ Super Admin designation to another Admin below.' : '') + '</div>';
+    html += '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Super Admin</th><th>Department</th><th>Last active</th><th></th></tr></thead><tbody>' +
+      active.map(u => (
+        '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td>' +
+        '<td><select class="inline-select" onchange="changeUserRole(\''+u.id+'\', this.value)">' +
+          ['User','Technician','Admin','Asset Manager'].map(r => '<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+r+'</option>').join('') +
+        '</select></td>' +
+        '<td>' + (u.role === 'Asset Manager' ?
+          '<select class="inline-select" onchange="setUserAssetLocation(\''+u.id+'\', this.value)">' +
+            '<option value="">— Choose —</option>' +
+            LOCATIONS.map(l => '<option value="'+l+'" '+((u.assetLocations||[])[0]===l?'selected':'')+'>'+l+'</option>').join('') +
+          '</select>' : '<span class="faint">—</span>') +
+        '</td>' +
+        '<td>' + (u.isSuperAdmin ? '<span class="badge badge-res">⭐ Super Admin</span>' :
+          (iAmSuper && u.role === 'Admin' ? '<button class="btn btn-sm" onclick="transferSuperAdmin(\''+u.id+'\')">Make Super Admin</button>' : '<span class="faint">—</span>')) +
+        '</td>' +
+        '<td>'+esc(u.dept)+'</td><td class="faint">'+fmtRelative(u.lastActive)+'</td>' +
+        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="adminResetPassword(\''+u.id+'\')">Reset password</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
+      )).join('') + '</tbody></table></div>';
+  }
+
+  if (state.userTab === 'disabled'){
+    const disabled = users.filter(u=>u.status==='disabled');
+    html += disabled.length ? '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th></th></tr></thead><tbody>' +
+      disabled.map(u => (
+        '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td><td>'+esc(u.dept)+'</td>' +
+        '<td style="text-align:right"><button class="btn btn-primary btn-sm" onclick="enableUser(\''+u.id+'\')">Enable</button></td></tr>'
+      )).join('') + '</tbody></table></div>' : '<div class="card empty">No disabled users.</div>';
+  }
+
+  if (state.userTab === 'resets'){
+    html += passwordResets.length ? '<div class="card" style="padding:0"><table><thead><tr><th>User</th><th>Email</th><th>Requested</th><th>Status</th><th></th></tr></thead><tbody>' +
+      passwordResets.map(r => (
+        '<tr><td>'+esc(r.userName)+'</td><td class="mono" style="font-size:12px">'+esc(r.email)+'</td><td class="faint">'+fmtRelative(r.requestedAt)+'</td>' +
+        '<td><span class="badge '+(r.status==='pending'?'badge-open':r.status==='approved'?'badge-res':'badge-closed')+'">'+r.status+'</span></td>' +
+        '<td style="text-align:right">' + (r.status==='pending' ? '<button class="btn btn-sm" style="margin-right:6px" onclick="rejectReset(\''+r.id+'\')">Reject</button><button class="btn btn-primary btn-sm" onclick="approveReset(\''+r.id+'\')">Set temp password</button>' : '<span class="faint">Resolved</span>') + '</td></tr>'
+      )).join('') + '</tbody></table></div>' : '<div class="card empty">No password reset requests.</div>';
+  }
+  return html;
+}
+
+/* ---------- Technicians ---------- */
+function techniciansHtml(){
+  let html = '<div class="grid grid-2">';
+  html += getTechnicians().map(tech => {
+    const assigned = tickets.filter(t=>t.assignedTo && t.assignedTo.id===tech.id);
+    const open = assigned.filter(t=>t.status!=='CLOSED');
+    const resolved = assigned.filter(t=>t.status==='RESOLVED'||t.status==='CLOSED');
+    return '<div class="card">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+        '<span class="avatar" style="width:32px;height:32px">'+initials(tech.name)+'</span>' +
+        '<div><div style="font-weight:600;font-size:13.5px">'+tech.name+'</div><div class="faint" style="font-size:11.5px">IT Support</div></div>' +
+      '</div>' +
+      '<div class="info-row"><span class="k">Active tickets</span><span class="v">'+open.length+'</span></div>' +
+      '<div class="info-row"><span class="k">Resolved / closed</span><span class="v">'+resolved.length+'</span></div>' +
+      '<div class="info-row"><span class="k">Total assigned</span><span class="v">'+assigned.length+'</span></div>' +
+    '</div>';
+  }).join('');
+  html += '</div>';
+  return html;
+}
+
+/* ---------- Assets ---------- */
+function assetStatCard(label, num, statusValue){
+  const f = state.assetFilter;
+  const active = f.status === statusValue;
+  return '<button class="stat-card" style="width:100%;text-align:left;cursor:pointer;'+(active?'border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);':'')+'" onclick="setAssetFilter(\'status\',\''+statusValue+'\')">' +
+    '<div class="stat-num" style="font-size:20px">'+num+'</div><div class="stat-label">'+label+'</div></button>';
+}
+
+function assetFormHtml(){
+  const editing = state.assetEditingId ? assets.find(a => a.id === state.assetEditingId) : null;
+  const v = (field, fallback) => editing ? (editing[field] != null ? editing[field] : fallback) : fallback;
+  const dateVal = (d) => d ? new Date(d).toISOString().slice(0,10) : '';
+  const locOptions = state.role === 'assetmanager' ? currentPersona().assetLocations : LOCATIONS;
+  const currentLoc = v('location', locOptions[0] || '');
+  return '<div class="card" style="margin-bottom:16px;border-color:var(--accent)">' +
+    '<div class="section-title">' + (editing ? 'Edit asset — ' + editing.id : 'Add a new asset') + '</div>' +
+    '<div id="asset-form-error" class="banner banner-warn" style="display:none"></div>' +
+    '<div class="grid grid-2">' +
+      '<div class="field"><label>Name / model <span class="req">*</span></label><input type="text" id="asset-name" placeholder="e.g. Dell Latitude 5420" value="'+esc(v('name',''))+'"></div>' +
+      '<div class="field"><label>Category <span class="req">*</span></label><select id="asset-category">' + ASSET_CATEGORIES.map(c=>'<option value="'+c+'" '+(v('category','')===c?'selected':'')+'>'+c+'</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Serial number</label><input type="text" id="asset-serial" placeholder="Serial / license key" value="'+esc(v('serialNumber',''))+'"></div>' +
+      '<div class="field"><label>Status <span class="req">*</span></label><select id="asset-status">' + ASSET_STATUSES.map(s=>'<option value="'+s+'" '+(v('status','In Stock')===s?'selected':'')+'>'+s+'</option>').join('') + '</select></div>' +
+      '<div class="field"><label>Assigned to</label><input type="text" id="asset-assigned" placeholder="Person\'s name, or leave blank" value="'+esc(v('assignedTo',''))+'"></div>' +
+      '<div class="field"><label>Department</label><input type="text" id="asset-department" placeholder="e.g. Marketing" value="'+esc(v('department',''))+'"></div>' +
+      '<div class="field"><label>Location <span class="req">*</span></label><select id="asset-location">' + locOptions.map(l=>'<option value="'+l+'" '+(currentLoc===l?'selected':'')+'>'+l+'</option>').join('') + '</select>' + (state.role==='assetmanager' ? '<div class="hint">Limited to your assigned location(s).</div>' : '') + '</div>' +
+      '<div class="field"><label>Vendor</label><input type="text" id="asset-vendor" placeholder="e.g. Dell" value="'+esc(v('vendor',''))+'"></div>' +
+      '<div class="field"><label>Joining date</label><input type="date" id="asset-joining-date" value="'+dateVal(v('joiningDate',null))+'"></div>' +
+      '<div class="field"><label>Asset allot date</label><input type="date" id="asset-allot-date" value="'+dateVal(v('assetAllotDate',null))+'"></div>' +
+      '<div class="field"><label>Exit date</label><input type="date" id="asset-exit-date" value="'+dateVal(v('exitDate',null))+'"></div>' +
+    '</div>' +
+    '<div class="field"><label>Notes</label><textarea id="asset-notes" placeholder="Anything else worth recording">'+esc(v('notes',''))+'</textarea></div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button class="btn btn-primary" onclick="saveAssetForm()">' + (editing ? 'Save changes' : 'Add asset') + '</button>' +
+      '<button class="btn" onclick="closeAssetForm()">Cancel</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function assetsHtml(){
+  const isManager = state.role === 'assetmanager';
+  const persona = currentPersona();
+  const scoped = isManager ? assets.filter(a => persona.assetLocations.includes(a.location)) : assets.slice();
+
+  const f = state.assetFilter;
+  let list = scoped.slice();
+  if (f.category !== 'all') list = list.filter(a => a.category === f.category);
+  if (f.status !== 'all') list = list.filter(a => a.status === f.status);
+  if (f.location !== 'all') list = list.filter(a => a.location === f.location);
+  if (f.q) list = list.filter(a => (a.name+a.id+a.serialNumber+a.assignedTo).toLowerCase().includes(f.q.toLowerCase()));
+
+  const byStatus = {}; ASSET_STATUSES.forEach(s => byStatus[s] = 0);
+  scoped.forEach(a => byStatus[a.status] = (byStatus[a.status]||0) + 1);
+
+  let html = '';
+  if (isManager && !persona.assetLocations.length){
+    html += '<div class="banner banner-warn">Your account doesn\'t have any locations assigned yet — ask an Admin to assign one under Users → Active Users.</div>';
+  }
+
+  html += '<div class="grid grid-4" style="margin-bottom:16px">' +
+    assetStatCard('Total assets', scoped.length, 'all') +
+    assetStatCard('In use', byStatus['In Use']||0, 'In Use') +
+    assetStatCard('In stock', byStatus['In Stock']||0, 'In Stock') +
+    assetStatCard('Under repair', byStatus['Under Repair']||0, 'Under Repair') +
+  '</div>';
+
+  if (state.assetFormOpen && (!isManager || persona.assetLocations.length)) html += assetFormHtml();
+
+  if (!isManager){
+    html += '<div class="card" style="margin-bottom:16px">' +
+      '<div class="section-title">Import / export</div>' +
+      '<div class="hint" style="margin-bottom:12px">Export the register as a CSV, or import one to bulk add or update assets. Rows with an existing Asset ID update that asset; rows without one are added as new.</div>' +
+      (state.assetImportMsg ? '<div class="banner '+(state.assetImportMsg.type==='error'?'banner-warn':'banner-closed')+'" style="margin-bottom:12px">'+esc(state.assetImportMsg.text)+' <button class="btn btn-sm" style="margin-left:auto" onclick="state.assetImportMsg=null;render();">Dismiss</button></div>' : '') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+        '<button class="btn" onclick="exportAssetsCSV()">⬇ Export assets CSV</button>' +
+        '<input type="file" id="asset-import-file" accept=".csv" style="max-width:220px">' +
+        '<button class="btn" onclick="triggerAssetImport()">⬆ Import CSV</button>' +
+      '</div>' +
+    '</div>';
+  } else {
+    html += '<div class="card" style="margin-bottom:16px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+        '<div><div class="section-title" style="margin:0">Your locations</div><div class="hint">'+(persona.assetLocations.length?esc(persona.assetLocations.join(', ')):'None assigned')+'</div></div>' +
+        '<button class="btn btn-sm" onclick="exportAssetsCSV('+JSON.stringify(scoped.map(a=>a.id))+')">⬇ Export my assets CSV</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  const locFilterOptions = isManager ? persona.assetLocations : LOCATIONS;
+  html += '<div class="filters">' +
+    '<input type="text" placeholder="Search by name, ID, serial or assignee…" value="'+esc(f.q)+'" oninput="setAssetFilter(\'q\', this.value)">' +
+    '<select onchange="setAssetFilter(\'category\', this.value)">' +
+      '<option value="all" '+(f.category==='all'?'selected':'')+'>All categories</option>' +
+      ASSET_CATEGORIES.map(c=>'<option value="'+c+'" '+(f.category===c?'selected':'')+'>'+c+'</option>').join('') +
+    '</select>' +
+    '<select onchange="setAssetFilter(\'status\', this.value)">' +
+      '<option value="all" '+(f.status==='all'?'selected':'')+'>All statuses</option>' +
+      ASSET_STATUSES.map(s=>'<option value="'+s+'" '+(f.status===s?'selected':'')+'>'+s+'</option>').join('') +
+    '</select>' +
+    '<select onchange="setAssetFilter(\'location\', this.value)">' +
+      '<option value="all" '+(f.location==='all'?'selected':'')+'>All locations</option>' +
+      locFilterOptions.map(l=>'<option value="'+l+'" '+(f.location===l?'selected':'')+'>'+l+'</option>').join('') +
+    '</select>' +
+    '<button class="btn btn-primary" style="margin-left:auto" onclick="openAssetForm()" '+(isManager && !persona.assetLocations.length ? 'disabled':'')+'>+ Add asset</button>' +
+  '</div>';
+
+  html += '<div class="card" style="padding:0">' + (list.length ? assetTableHtml(list) : '<div class="empty">No assets match these filters.</div>') + '</div>';
+  return html;
+}
+
+function assetTableHtml(list){
+  return '<table><thead><tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Serial</th><th>Assigned to</th><th>Status</th><th>Location</th><th></th></tr></thead><tbody>' +
+    list.map(a => (
+      '<tr><td class="tid">'+a.id+'</td>' +
+      '<td>'+esc(a.name)+'</td>' +
+      '<td class="muted">'+esc(a.category)+'</td>' +
+      '<td class="mono faint" style="font-size:11.5px">'+esc(a.serialNumber||'—')+'</td>' +
+      '<td class="muted">'+esc(a.assignedTo||'Unassigned')+'</td>' +
+      '<td><span class="badge '+assetStatusBadge(a.status)+'">'+a.status+'</span></td>' +
+      '<td class="faint" style="font-size:12px">'+esc(a.location||'—')+'</td>' +
+      '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="openAssetForm(\''+a.id+'\')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteAsset(\''+a.id+'\')">Delete</button></td>' +
+      '</tr>'
+    )).join('') +
+  '</tbody></table>';
+}
+
+function assetStatusBadge(status){
+  if (status === 'In Use') return 'badge-res';
+  if (status === 'In Stock') return 'badge-open';
+  if (status === 'Under Repair') return 'badge-prog';
+  if (status === 'Lost') return 'pri-critical';
+  return 'badge-closed';
+}
+
+/* ---------- Employees without assets ---------- */
+function noAssetEmployeesHtml(){
+  const assignedNames = new Set(assets.map(a => (a.assignedTo||'').trim().toLowerCase()).filter(Boolean));
+  const employees = users.filter(u => u.status === 'active');
+  const withoutAssets = employees.filter(u => !assignedNames.has(u.name.trim().toLowerCase()));
+
+  let html = '<div class="hint" style="margin-bottom:14px">Active accounts whose name doesn\'t match the "Assigned to" field on any asset in the register. Useful for spotting new joiners who still need equipment.</div>';
+
+  html += '<div class="card" style="padding:0">' + (withoutAssets.length ?
+    '<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th></th></tr></thead><tbody>' +
+    withoutAssets.map(u => (
+      '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td>' +
+      '<td>'+esc(u.isSuperAdmin ? 'Super Admin' : u.role)+'</td><td>'+esc(u.dept)+'</td>' +
+      '<td style="text-align:right"><button class="btn btn-sm btn-primary" onclick="switchView(\'assets\');state.assetFormOpen=true;render();">+ Add asset</button></td></tr>'
+    )).join('') + '</tbody></table>'
+    : '<div class="empty">Every active employee has at least one asset assigned.</div>') + '</div>';
+
+  return html;
+}
+
+/* ---------- Reports ---------- */
+function reportsHtml(){
+  const byDept = {};
+  tickets.forEach(t => { byDept[t.department] = (byDept[t.department]||0)+1; });
+  const resolvedTickets = tickets.filter(t => t.status === 'RESOLVED' || t.status === 'CLOSED');
+  const avgResHrs = resolvedTickets.length ? Math.round(resolvedTickets.reduce((s,t)=> s + (t.updatedAt - t.createdAt)/3600000, 0) / resolvedTickets.length) : 0;
+  const closedThisWeek = tickets.filter(t => t.status==='CLOSED' && (NOW - t.updatedAt) < 7*24*3600*1000).length;
+
+  let html = '<div class="grid grid-4" style="margin-bottom:18px">' +
+    statCard('Avg resolution time', avgResHrs+'h', '') +
+    statCard('Closed this week', closedThisWeek, '') +
+    statCard('Total tickets', tickets.length, '') +
+    statCard('Active technicians', getTechnicians().length, '') +
+  '</div>';
+
+  html += '<div class="card" style="margin-bottom:16px"><div class="section-title">Tickets by department</div>' +
+    Object.keys(byDept).map(d => (
+      '<div class="bar-row"><div class="bar-label">'+d+'</div><div class="bar-track"><div class="bar-fill" style="width:'+(byDept[d]/tickets.length*100)+'%"></div></div><div class="bar-num">'+byDept[d]+'</div></div>'
+    )).join('') +
+  '</div>';
+
+  html += '<div class="card"><div class="section-title">Resolution performance by technician</div>' +
+    '<table><thead><tr><th>Technician</th><th>Assigned</th><th>Resolved</th><th>Closed</th></tr></thead><tbody>' +
+    getTechnicians().map(tech => {
+      const a = tickets.filter(t=>t.assignedTo && t.assignedTo.id===tech.id);
+      return '<tr><td>'+tech.name+'</td><td>'+a.length+'</td><td>'+a.filter(t=>t.status==='RESOLVED').length+'</td><td>'+a.filter(t=>t.status==='CLOSED').length+'</td></tr>';
+    }).join('') +
+    '</tbody></table>' +
+  '</div>';
+  return html;
+}
+
+/* ---------- Audit log ---------- */
+function auditHtml(){
+  return '<div class="card" style="padding:0"><table><thead><tr><th>Time</th><th>User</th><th>Role</th><th>Action</th><th>Ticket</th><th>Old value</th><th>New value</th></tr></thead><tbody>' +
+    auditLog.map(a => (
+      '<tr><td class="mono faint" style="font-size:11.3px">'+fmtDateTime(a.timestamp)+'</td><td>'+esc(a.user)+'</td><td class="faint">'+esc(a.role)+'</td><td>'+esc(a.action)+'</td><td class="tid">'+esc(a.ticketId)+'</td><td class="faint">'+esc(a.oldValue)+'</td><td>'+esc(a.newValue)+'</td></tr>'
+    )).join('') +
+  '</tbody></table></div>';
+}
+
+/* ---------- Settings ---------- */
+/* ---------- CSV export ---------- */
+function csvEscape(v){
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+function rowsToCSV(headers, rows){
+  const lines = [headers.map(csvEscape).join(',')];
+  rows.forEach(r => lines.push(r.map(csvEscape).join(',')));
+  return lines.join('\r\n');
+}
+function isoOrBlank(d){ return d ? new Date(d).toISOString() : ''; }
+function dateStamp(){ return new Date().toISOString().slice(0,10); }
+function downloadCSV(filename, csvString){
+  const blob = new Blob(['\ufeff' + csvString], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function exportTicketsCSV(){ downloadCSV('tickets_export_'+dateStamp()+'.csv', buildTicketsCSV()); }
+function buildTicketsCSV(){
+  const headers = ['Ticket ID','Subject','Category','Sub-category','Priority','Status','Description','Location','Department','Created By','Created At','Updated At','Assigned To','SLA Deadline','Resolution Notes','Attachment','Comments','Activity History'];
+  const rows = tickets.map(t => [
+    t.id, t.subject, t.category, t.subcategory, t.priority, STATUS_LABEL[t.status], t.description, t.location, t.department,
+    t.createdBy.name, isoOrBlank(t.createdAt), isoOrBlank(t.updatedAt), t.assignedTo ? t.assignedTo.name : '', isoOrBlank(t.slaDeadline),
+    t.resolutionNotes || '', t.attachment || '',
+    t.comments.map(c => (c.internal?'[internal] ':'') + c.author + ' (' + c.role + ') @ ' + isoOrBlank(c.timestamp) + ': ' + c.text).join(' | '),
+    t.activity.map(a => isoOrBlank(a.timestamp) + ' - ' + a.actor + ': ' + a.action).join(' | '),
+  ]);
+  return rowsToCSV(headers, rows);
+}
+
+function exportUsersCSV(){ downloadCSV('users_export_'+dateStamp()+'.csv', buildUsersCSV()); }
+function buildUsersCSV(){
+  const headers = ['User ID','Name','Email','Department','Role','Status','Super Admin','Last Active / Requested At'];
+  const rows = users.map(u => [
+    u.id, u.name, u.email, u.dept, u.role || '', u.status, u.isSuperAdmin ? 'Yes' : 'No',
+    isoOrBlank(u.lastActive || u.requestedAt),
+  ]);
+  return rowsToCSV(headers, rows);
+}
+
+function exportPasswordResetsCSV(){ downloadCSV('password_reset_requests_'+dateStamp()+'.csv', buildPasswordResetsCSV()); }
+function buildPasswordResetsCSV(){
+  const headers = ['Request ID','User Name','Email','Requested At','Status'];
+  const rows = passwordResets.map(r => [r.id, r.userName, r.email, isoOrBlank(r.requestedAt), r.status]);
+  return rowsToCSV(headers, rows);
+}
+
+function exportAuditLogCSV(){ downloadCSV('audit_log_export_'+dateStamp()+'.csv', buildAuditLogCSV()); }
+function buildAuditLogCSV(){
+  const headers = ['Timestamp','User','Role','Action','Ticket ID','Old Value','New Value'];
+  const rows = auditLog.map(a => [isoOrBlank(a.timestamp), a.user, a.role, a.action, a.ticketId, a.oldValue, a.newValue]);
+  return rowsToCSV(headers, rows);
+}
+
+function exportTechniciansCSV(){ downloadCSV('technicians_export_'+dateStamp()+'.csv', buildTechniciansCSV()); }
+function buildTechniciansCSV(){
+  const headers = ['Technician ID','Name','Active Tickets','Resolved','Closed','Total Assigned'];
+  const rows = getTechnicians().map(tech => {
+    const assigned = tickets.filter(t => t.assignedTo && t.assignedTo.id === tech.id);
+    return [tech.id, tech.name, assigned.filter(t=>t.status!=='CLOSED').length, assigned.filter(t=>t.status==='RESOLVED').length, assigned.filter(t=>t.status==='CLOSED').length, assigned.length];
+  });
+  return rowsToCSV(headers, rows);
+}
+
+function exportAssetsCSV(idList){ downloadCSV('assets_export_'+dateStamp()+'.csv', buildAssetsCSV(idList)); }
+function buildAssetsCSV(idList){
+  const source = idList ? assets.filter(a => idList.includes(a.id)) : assets;
+  const headers = ['Asset ID','Name','Category','Serial Number','Assigned To','Department','Location','Status','Vendor','Joining Date','Asset Allot Date','Exit Date','Notes'];
+  const rows = source.map(a => [
+    a.id, a.name, a.category, a.serialNumber, a.assignedTo, a.department, a.location, a.status, a.vendor,
+    isoOrBlank(a.joiningDate), isoOrBlank(a.assetAllotDate), isoOrBlank(a.exitDate), a.notes,
+  ]);
+  return rowsToCSV(headers, rows);
+}
+
+function exportAllCSV(){
+  exportTicketsCSV();
+  setTimeout(exportUsersCSV, 200);
+  setTimeout(exportPasswordResetsCSV, 400);
+  setTimeout(exportTechniciansCSV, 600);
+  setTimeout(exportAssetsCSV, 800);
+  setTimeout(exportAuditLogCSV, 1000);
+}
+
+/* ---------- Scheduled folder export (File System Access API) ---------- */
+function fsAccessSupported(){ return typeof window.showDirectoryPicker === 'function'; }
+
+async function chooseExportFolder(){
+  if (!fsAccessSupported()){
+    openModal({ kind:'info', title:"Can't pick a folder in this browser", message:'Direct folder access needs Chrome or Edge. In other browsers, scheduled exports will fall back to your regular Downloads folder — set that folder as the default download location in your browser settings instead.' });
+    return;
+  }
+  try{
+    const handle = await window.showDirectoryPicker();
+    state.exportFolderHandle = handle;
+    state.exportFolderName = handle.name;
+    render();
+  } catch(e){ /* user cancelled the picker — nothing to do */ }
+}
+
+function clearExportFolder(){
+  state.exportFolderHandle = null;
+  state.exportFolderName = null;
+  render();
+}
+
+async function writeFileToFolder(filename, content){
+  if (!state.exportFolderHandle) return false;
+  try{
+    const fileHandle = await state.exportFolderHandle.getFileHandle(filename, { create:true });
+    const writable = await fileHandle.createWritable();
+    await writable.write('\ufeff' + content);
+    await writable.close();
+    return true;
+  } catch(e){
+    console.error('writeFileToFolder failed', e);
+    return false;
+  }
+}
+
+async function runScheduledExport(isTest){
+  const files = [
+    ['Tickets.csv', buildTicketsCSV()],
+    ['Users.csv', buildUsersCSV()],
+    ['Assets.csv', buildAssetsCSV()],
+    ['Password_Reset_Requests.csv', buildPasswordResetsCSV()],
+    ['Technicians.csv', buildTechniciansCSV()],
+    ['Audit_Log.csv', buildAuditLogCSV()],
+  ];
+  if (state.exportFolderHandle){
+    let ok = 0;
+    for (const [name, content] of files){
+      if (await writeFileToFolder(name, content)) ok++;
+    }
+    if (isTest) openModal({ kind:'info', title:'Export complete', message:ok + ' of ' + files.length + ' files written to "' + state.exportFolderName + '".' });
+  } else {
+    files.forEach(([name, content], i) => setTimeout(() => downloadCSV(name, content), i * 200));
+    if (isTest) openModal({ kind:'info', title:'Downloaded to your Downloads folder', message:"No export folder is selected, so files went to your browser's default download location instead. Choose a folder above to write there directly next time." });
+  }
+}
+
+function toggleDailyAutoExport(on){
+  state.dailyAutoExportEnabled = on;
+  render();
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+setInterval(function(){
+  if (!state.dailyAutoExportEnabled) return;
+  const now = new Date();
+  if (now.getHours() === 18 && now.getMinutes() === 30 && state.lastAutoExportDate !== todayStr()){
+    state.lastAutoExportDate = todayStr();
+    runScheduledExport(false);
+  }
+}, 30000);
+
+function exportDataCard(title, count, desc, fn){
+  return '<div class="card">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">' +
+      '<div class="section-title" style="margin:0">'+title+'</div>' +
+      '<span class="badge badge-closed">'+count+' rows</span>' +
+    '</div>' +
+    '<div class="hint" style="margin-bottom:12px">'+desc+'</div>' +
+    '<button class="btn btn-block" onclick="'+fn+'()">⬇ Download CSV</button>' +
+  '</div>';
+}
+
+function exportDataHtml(){
+  return '<div class="card" style="margin-bottom:16px">' +
+    '<div class="section-title">Export everything</div>' +
+    '<div class="hint" style="margin-bottom:12px">One CSV file per dataset below, exactly as the data stands right now — nothing is modified. Good for a point-in-time backup or to load into a spreadsheet or a real database later.</div>' +
+    '<button class="btn btn-primary" onclick="exportAllCSV()">⬇ Export all (6 CSV files)</button>' +
+  '</div>' +
+  '<div class="grid grid-2">' +
+    exportDataCard('Tickets', tickets.length, 'Every ticket — full details plus comments and activity history flattened into text columns.', 'exportTicketsCSV') +
+    exportDataCard('Users', users.length, 'All users — pending, active and disabled — with roles and Super Admin status.', 'exportUsersCSV') +
+    exportDataCard('Password reset requests', passwordResets.length, 'Every reset request and its current approval status.', 'exportPasswordResetsCSV') +
+    exportDataCard('Technicians', getTechnicians().length, 'Technician roster with live workload counts.', 'exportTechniciansCSV') +
+    exportDataCard('Office assets', assets.length, 'The full asset register — see the Office assets page to import a CSV back in.', 'exportAssetsCSV') +
+    exportDataCard('Audit log', auditLog.length, 'Every recorded status-changing action, in order.', 'exportAuditLogCSV') +
+  '</div>';
+}
+
+function settingsHtml(){
+  const iAmSuper = isCurrentUserSuperAdmin();
+  const superAdmin = getSuperAdmin();
+  const otherAdmins = users.filter(u => u.role === 'Admin' && u.status === 'active' && !u.isSuperAdmin);
+
+  let html = '<div class="card" style="max-width:560px;margin-bottom:16px">' +
+    '<div class="section-title">Super Admin access</div>' +
+    '<div class="info-row"><span class="k">Current Super Admin</span><span class="v">' + (superAdmin ? '⭐ '+esc(superAdmin.name) : '— none —') + '</span></div>';
+
+  if (iAmSuper){
+    html += '<div class="hint" style="margin:10px 0">You hold Super Admin access. You can hand it to any other active Admin — they\'ll gain it immediately and you\'ll drop back to a regular Admin.</div>';
+    if (otherAdmins.length){
+      html += '<div class="field" style="margin-top:12px"><label>Transfer to</label><select id="sa-target">' +
+        otherAdmins.map(u => '<option value="'+u.id+'">'+esc(u.name)+' — '+esc(u.email)+'</option>').join('') +
+        '</select></div>' +
+        '<button class="btn btn-primary" onclick="transferSuperAdmin(document.getElementById(\'sa-target\').value)">Transfer Super Admin access</button>';
+    } else {
+      html += '<div class="hint">No other Admins yet — promote someone to Admin in Users → Active Users first, then you can hand off Super Admin here.</div>';
+    }
+  } else {
+    html += '<div class="hint" style="margin-top:10px">Only the current Super Admin can transfer this access. Ask ' + (superAdmin?esc(superAdmin.name):'the Super Admin') + ' to do it from this same screen, or from Users → Active Users.</div>';
+  }
+  html += '</div>';
+
+  html += '<div class="card" style="max-width:560px">' +
+    '<div class="section-title">System settings</div>' +
+    (!iAmSuper ? '<div class="banner banner-warn">These are reserved for the Super Admin and appear read-only here.</div>' : '') +
+    '<div class="info-row"><span class="k">Default SLA — Critical</span><span class="v">4 hours</span></div>' +
+    '<div class="info-row"><span class="k">Default SLA — High</span><span class="v">8 hours</span></div>' +
+    '<div class="info-row"><span class="k">Default SLA — Medium</span><span class="v">24 hours</span></div>' +
+    '<div class="info-row"><span class="k">Default SLA — Low</span><span class="v">72 hours</span></div>' +
+    '<div class="info-row"><span class="k">Allow users to reopen closed tickets</span><span class="v">Off</span></div>' +
+    '<div class="info-row"><span class="k">Email notifications</span><span class="v">On</span></div>' +
+  '</div>';
+
+  html += '<div class="card" style="max-width:560px;margin-top:16px">' +
+    '<div class="section-title">Automatic data backup</div>' +
+    '<div class="hint" style="margin-bottom:10px">When on, every time a ticket, user or asset changes, an up-to-date CSV of that dataset is automatically downloaded to your computer — an easy way to keep an Excel copy of the live data without visiting Export data each time. Use the Export data page any time for a full one-off backup of all six datasets.</div>' +
+    '<label class="checkbox-row" style="font-size:13px"><input type="checkbox" '+(state.autoExport?'checked':'')+' onchange="toggleAutoExport(this.checked)"> Auto-download CSV on every change</label>' +
+  '</div>';
+
+  html += '<div class="card" style="max-width:560px;margin-top:16px">' +
+    '<div class="section-title">Scheduled daily export — 6:30 PM</div>' +
+    '<div class="hint" style="margin-bottom:10px">Writes all six datasets as CSV files, automatically, every day at 6:30 PM — as long as this tab is open in a browser at that moment. Browsers can\'t write to an arbitrary folder path on their own, so pick the destination folder once below (Chrome or Edge only); other browsers will fall back to your regular Downloads folder.</div>' +
+    (state.exportFolderName ?
+      '<div class="info-row"><span class="k">Export folder</span><span class="v">📁 '+esc(state.exportFolderName)+'</span></div>' +
+      '<div style="display:flex;gap:8px;margin:10px 0"><button class="btn btn-sm" onclick="chooseExportFolder()">Change folder</button><button class="btn btn-sm" onclick="clearExportFolder()">Clear</button></div>'
+      : '<div style="margin:10px 0"><button class="btn" onclick="chooseExportFolder()">📁 Choose export folder…</button></div>') +
+    '<label class="checkbox-row" style="font-size:13px;margin-bottom:12px"><input type="checkbox" '+(state.dailyAutoExportEnabled?'checked':'')+' onchange="toggleDailyAutoExport(this.checked)"> Automatically export every day at 6:30 PM</label>' +
+    '<button class="btn btn-sm" onclick="runScheduledExport(true)">Export now (test)</button>' +
+    '<div class="hint" style="margin-top:12px">Heads up: since everything here lives in this browser tab\'s memory (no server), the "6:30 PM" export only fires if this tab is open and this app is loaded at that moment — a closed browser can\'t run it. To land files in your exact OneDrive path automatically every day without keeping a tab open, you\'d eventually want a small real backend plus a scheduled task (e.g. Windows Task Scheduler) instead of a browser-only tool like this one.</div>' +
+  '</div>';
+  return html;
+}
+
+/* ================= INIT ================= */
+render();
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.role-switch') && (state.roleMenuOpen || state.notifOpen)){
+    state.roleMenuOpen = false; state.notifOpen = false; render();
+  }
+}, true);
+</script>
+</body>
+</html>
