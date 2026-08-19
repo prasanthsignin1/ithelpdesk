@@ -545,7 +545,7 @@ async function attemptLogin(){
   if (!email || !password){ state.authError = 'Enter your email and password.'; render(); return; }
   state.authError = 'Signing in…'; render();
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error){ state.authError = 'Incorrect email or password.'; render(); return; }
+  if (error){ state.authError = 'Login failed: ' + error.message + ' (code: ' + (error.status||'?') + ')'; render(); return; }
   const { data:profile, error: pErr } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
   if (pErr || !profile){ state.authError = 'Could not load your account. Try again.'; await sb.auth.signOut(); render(); return; }
   if (profile.status === 'disabled'){ state.authError = 'This account has been disabled. Contact an administrator.'; await sb.auth.signOut(); render(); return; }
