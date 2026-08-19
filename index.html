@@ -327,7 +327,7 @@ tr.row-click:hover td{ background:var(--surface-alt); }
      frontend code (Row Level Security is what actually protects data).
      Never put the "service_role" secret key in this file. -->
 <script>
-   const SUPABASE_URL = 'https://fofwjduyfvoaurnhhvkd.supabase.co';
+  const SUPABASE_URL = 'https://fofwjduyfvoaurnhhvkd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_P5PG4CUBMQEL01sxoet5vg_IJU5bKkk';
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -547,7 +547,7 @@ async function attemptLogin(){
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error){ state.authError = 'Login failed: ' + error.message + ' (code: ' + (error.status||'?') + ')'; render(); return; }
   const { data:profile, error: pErr } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
-  if (pErr || !profile){ state.authError = 'Could not load your account. Try again.'; await sb.auth.signOut(); render(); return; }
+  if (pErr || !profile){ state.authError = 'Could not load your account: ' + (pErr ? pErr.message : 'no profile row found') + '.'; await sb.auth.signOut(); render(); return; }
   if (profile.status === 'disabled'){ state.authError = 'This account has been disabled. Contact an administrator.'; await sb.auth.signOut(); render(); return; }
   if (profile.status === 'pending'){ state.authError = 'Your registration is still pending admin approval.'; await sb.auth.signOut(); render(); return; }
   state.authenticated = true;
