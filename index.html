@@ -327,7 +327,7 @@ tr.row-click:hover td{ background:var(--surface-alt); }
      frontend code (Row Level Security is what actually protects data).
      Never put the "service_role" secret key in this file. -->
 <script>
-  const SUPABASE_URL = 'https://fofwjduyfvoaurnhhvkd.supabase.co';
+ const SUPABASE_URL = 'https://fofwjduyfvoaurnhhvkd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_P5PG4CUBMQEL01sxoet5vg_IJU5bKkk';
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -510,6 +510,37 @@ async function restoreSession(){
   state.view = defaultViewFor(state.role);
   await sb.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', profile.id);
   await loadAllData();
+  setupRealtime();
+}
+
+/* ================= REALTIME =================
+   Without this, everyone only ever sees their OWN changes until they hit
+   refresh — a new ticket from a coworker, an approval, a status change,
+   etc. wouldn't show up until reload. This subscribes to every table and
+   quietly re-fetches + re-renders whenever anything changes anywhere,
+   for anyone logged in. Requires running, once, in Supabase SQL Editor:
+     alter publication supabase_realtime add table
+       tickets, ticket_comments, ticket_activity, profiles, assets,
+       notifications, audit_log; */
+let realtimeChannel = null;
+let realtimeReloadTimer = null;
+function scheduleRealtimeReload(){
+  // Debounced: several changes landing at once (e.g. a ticket + its
+  // activity row) only trigger one reload, not one per row.
+  clearTimeout(realtimeReloadTimer);
+  realtimeReloadTimer = setTimeout(() => { if (state.authenticated) loadAllData(); }, 400);
+}
+function setupRealtime(){
+  if (realtimeChannel) return; // already listening
+  realtimeChannel = sb.channel('itdesk-live-updates');
+  ['tickets','ticket_comments','ticket_activity','profiles','assets','notifications','audit_log'].forEach(table => {
+    realtimeChannel.on('postgres_changes', { event:'*', schema:'public', table }, scheduleRealtimeReload);
+  });
+  realtimeChannel.subscribe();
+}
+function teardownRealtime(){
+  if (realtimeChannel){ sb.removeChannel(realtimeChannel); realtimeChannel = null; }
+  clearTimeout(realtimeReloadTimer);
 }
 
 /* ================= AUTH ================= */
@@ -556,6 +587,7 @@ async function attemptLogin(){
   await sb.from('profiles').update({ last_active:new Date().toISOString() }).eq('id', profile.id);
   switchRole(roleKeyFor(profile.role));
   await loadAllData();
+  setupRealtime();
 }
 
 async function doSignup(){
@@ -600,6 +632,7 @@ async function doForgotPassword(){
 }
 
 async function logout(){
+  teardownRealtime();
   await sb.auth.signOut();
   state.authenticated = false;
   state.authView = 'login';
