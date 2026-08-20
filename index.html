@@ -382,7 +382,7 @@ let notifications = {
    UI is always showing what's actually in the database. */
 
 async function loadAllData(){
-  const [profilesRes, ticketsRes, commentsRes, activityRes, assetsRes, auditRes, notifRes] = await Promise.all([
+  const [profilesRes, ticketsRes, commentsRes, activityRes, assetsRes, auditRes, notifRes, resetsRes] = await Promise.all([
     sb.from('profiles').select('*'),
     sb.from('tickets').select('*'),
     sb.from('ticket_comments').select('*'),
@@ -390,8 +390,9 @@ async function loadAllData(){
     sb.from('assets').select('*'),
     sb.from('audit_log').select('*').order('timestamp', { ascending:false }),
     sb.from('notifications').select('*').order('time', { ascending:false }),
+    sb.from('password_reset_requests').select('*').order('requested_at', { ascending:false }),
   ]);
-  [profilesRes, ticketsRes, commentsRes, activityRes, assetsRes, auditRes, notifRes].forEach(r => {
+  [profilesRes, ticketsRes, commentsRes, activityRes, assetsRes, auditRes, notifRes, resetsRes].forEach(r => {
     if (r.error) console.error('Supabase load error:', r.error.message);
   });
 
@@ -440,7 +441,11 @@ async function loadAllData(){
     notifications[n.role].push({ text:n.text, time:new Date(n.time) });
   });
 
-  passwordResets = []; // native Supabase email reset now handles this — see doForgotPassword()
+  passwordResets = (resetsRes.data || []).map(r => ({
+    id:r.id, userName:r.user_name, email:r.email,
+    requestedAt: r.requested_at ? new Date(r.requested_at) : null,
+    status:r.status,
+  }));
 
   render();
 }
@@ -623,9 +628,15 @@ async function doForgotPassword(){
   const email = document.getElementById('fp-email').value.trim().toLowerCase();
   if (!email){ state.authError = 'Enter the email on your account.'; render(); return; }
   state.authError = 'Sending…'; render();
-  // Uses Supabase Auth's built-in reset-by-email flow — no admin needs to
-  // see or set anyone's password.
-  await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+  // No email is sent. This just files a request an Admin can see under
+  // Users → Password reset requests, so they can set a new password
+  // directly and share it with the person themselves (see
+  // adminSetPasswordDirect below).
+  const { error } = await sb.from('password_reset_requests').insert({
+    user_name: email, email, status:'pending',
+  });
+  if (error){ state.authError = 'Could not submit request: ' + error.message; render(); return; }
+  await notifyRemote('admin', 'Password reset requested for ' + email);
   state.authView = 'forgot-done';
   state.authError = '';
   render();
@@ -708,6 +719,13 @@ function confirmModal(){
     if (dup){ showErr('Another account already uses that email.'); return; }
     doEditUser(m.targetId, name, email, dept);
     return;
+  } else if (m.kind === 'admin-reset-password'){
+    const pwd = document.getElementById('modal-input').value;
+    const err = document.getElementById('modal-error');
+    const showErr = (msg) => { if (err){ err.style.display='block'; err.innerText = msg; } };
+    if (!pwd || pwd.length < 6){ showErr('Enter a password with at least 6 characters.'); return; }
+    adminSetPasswordDirect(m.targetId, pwd, m.requestId);
+    return;
   } else if (m.kind === 'info'){
     closeModal();
     return;
@@ -719,9 +737,12 @@ function modalHtml(){
   const m = state.modal;
   if (!m) return '';
   let body = '';
-  if (m.kind === 'set-password'){
-    body = '<div class="field" style="margin-bottom:4px"><label>New password</label><input type="text" id="modal-input" placeholder="Enter a new password" autocomplete="off"></div>' +
-      '<div id="modal-error" class="hint" style="display:none;color:var(--critical);margin-bottom:8px">Enter a password first.</div>';
+  if (m.kind === 'admin-reset-password'){
+    body = '<div class="field" style="margin-bottom:4px"><label>New password</label>' +
+        '<div style="display:flex;gap:6px"><input type="text" id="modal-input" placeholder="Enter or generate a password" autocomplete="off" style="flex:1">' +
+        '<button type="button" class="btn btn-sm" onclick="document.getElementById(\'modal-input\').value=generatePassword()">Generate</button></div></div>' +
+      '<div class="hint" style="margin-bottom:8px">This sets '+esc(m.presetName||'their')+' password immediately — no email is sent. You\'ll get a copyable message to share with them afterward, over whatever internal chat you use.</div>' +
+      '<div id="modal-error" class="hint" style="display:none;color:var(--critical);margin-bottom:8px"></div>';
   }
   if (m.kind === 'info' && m.copyValue){
     body = '<div class="modal-copybox">'+esc(m.copyValue)+'</div><div class="hint">Tap to select, then copy.</div>';
@@ -945,22 +966,66 @@ async function transferSuperAdmin(id){
   await notifyRemote('admin', 'Super Admin access transferred to ' + target.name);
   await loadAllData();
 }
-/* Password resets are now handled entirely by Supabase Auth's built-in
-   "forgot password" email flow (see doForgotPassword above) — nobody,
-   including Admins, ever sees or sets another employee's password.
-   Setting someone else's password directly would require the Supabase
-   service-role secret key, which must never be used client-side. If you
-   want a "reset on behalf of a user" admin button, it needs a small
-   server-side function (Supabase Edge Function) using that key. */
-async function adminResendReset(id){
-  const u = users.find(x=>x.id===id);
+/* Admin-only direct password reset. Setting someone else's password
+   requires Supabase's service-role secret key, which must never be used
+   client-side — so this calls the "admin-reset-password" Edge Function
+   (deployed separately) which holds that key on the server and checks
+   the caller is an Admin before touching anything. See the accompanying
+   admin-reset-password/index.ts and password_reset_schema.sql files. */
+function generatePassword(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  let out = '';
+  for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function openResetPasswordModal(userId, requestId){
+  const u = users.find(x=>x.id===userId);
   if (!u) return;
-  await sb.auth.resetPasswordForEmail(u.email, { redirectTo: window.location.href });
-  await logAuditRemote('Sent password reset email', '—', '—', u.name);
-  openModal({ kind:'info', title:'Reset email sent', message:'A password reset link was emailed to ' + u.name + ' (' + u.email + ').' });
+  openModal({ kind:'admin-reset-password', targetId:userId, requestId:requestId||null,
+    title:'Reset password — ' + u.name, presetName:u.name, confirmLabel:'Set new password' });
+}
+
+async function adminSetPasswordDirect(userId, newPassword, requestId){
+  const u = users.find(x=>x.id===userId);
+  if (!u) return;
+  closeModal();
+  const { error } = await sb.functions.invoke('admin-reset-password', {
+    body: { user_id:userId, new_password:newPassword },
+  });
+  if (error){
+    openModal({ kind:'info', title:'Could not reset password', message:
+      'The admin-reset-password function returned an error: ' + error.message +
+      '. Make sure it\'s deployed in your Supabase project (see admin-reset-password/index.ts).' });
+    return;
+  }
+  if (requestId) await sb.from('password_reset_requests').update({ status:'fulfilled' }).eq('id', requestId);
+  await logAuditRemote('Reset password directly', '—', '—', u.name);
+  await loadAllData();
+  const msg = 'Hi ' + u.name + ', your iBridge Helpdesk password has been reset.\n' +
+    'New password: ' + newPassword + '\n' +
+    'Please log in and change it from your Profile once you\'re in.';
+  openModal({ kind:'info', title:'Password reset — share this with ' + u.name,
+    message:'Copy this and send it to them over your internal chat:', copyValue: msg });
+}
+
+async function dismissResetRequest(requestId){
+  await sb.from('password_reset_requests').update({ status:'dismissed' }).eq('id', requestId);
+  await loadAllData();
 }
 
 /* ================= ASSETS ================= */
+const ASSET_ID_PREFIX = 'iBT-';
+function nextAssetId(){
+  let max = 0;
+  const re = new RegExp('^' + ASSET_ID_PREFIX + '(\\d+)$', 'i');
+  assets.forEach(a => {
+    const m = re.exec((a.id||'').trim());
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return ASSET_ID_PREFIX + String(max + 1).padStart(4, '0');
+}
+
 function setAssetFilter(key, val){ state.assetFilter[key] = val; render(); }
 
 function openAssetForm(id){
@@ -1025,7 +1090,14 @@ async function saveAssetForm(){
     await sb.from('assets').update(row).eq('id', state.assetEditingId);
     await logAuditRemote('Updated asset', state.assetEditingId, '—', data.name);
   } else {
-    const { data:inserted, error } = await sb.from('assets').insert(row).select().single();
+    let inserted, error, newId = nextAssetId();
+    ({ data:inserted, error } = await sb.from('assets').insert(Object.assign({ id:newId }, row)).select().single());
+    if (error && /duplicate|unique/i.test(error.message||'')){
+      // Rare race with another admin adding at the same moment — bump and retry once.
+      const n = parseInt(newId.slice(ASSET_ID_PREFIX.length), 10) || 0;
+      newId = ASSET_ID_PREFIX + String(n + 1).padStart(4, '0');
+      ({ data:inserted, error } = await sb.from('assets').insert(Object.assign({ id:newId }, row)).select().single());
+    }
     if (error){ showErr('Could not save asset: ' + error.message); return; }
     await logAuditRemote('Added asset', inserted.id, '—', data.name);
   }
@@ -1139,7 +1211,9 @@ async function processAssetImport(text){
       await sb.from('assets').insert(Object.assign({ id:providedId }, dataRow));
       added++;
     } else {
-      await sb.from('assets').insert(dataRow);
+      const newId = nextAssetId();
+      await sb.from('assets').insert(Object.assign({ id:newId }, dataRow));
+      assets.push({ id:newId }); // keep nextAssetId() correct across multiple new rows in this same import
       added++;
     }
   }
@@ -1382,11 +1456,12 @@ function myTicketsHtml(){
   return '<div class="card" style="padding:0">' + ticketTableHtml(mine, false) + '</div>';
 }
 
-function ticketTableHtml(list, showAssignee){
-  return '<table><thead><tr><th>Ticket</th><th>Subject</th><th>Priority</th><th>Status</th>' + (showAssignee?'<th>Assigned to</th>':'') + '<th>Created</th><th>Updated</th></tr></thead><tbody>' +
+function ticketTableHtml(list, showAssignee, showRequester){
+  return '<table><thead><tr><th>Ticket</th>' + (showRequester?'<th>Raised by</th>':'') + '<th>Subject</th><th>Priority</th><th>Status</th>' + (showAssignee?'<th>Assigned to</th>':'') + '<th>Created</th><th>Updated</th></tr></thead><tbody>' +
     list.map(t => (
       '<tr class="row-click" onclick="openTicket(\''+t.id+'\');state.view=\'ticket-detail\';render();">' +
       '<td class="tid">'+t.id+'</td>' +
+      (showRequester? '<td class="muted">'+esc(t.createdBy.name)+'</td>':'') +
       '<td>'+esc(t.subject)+'</td>' +
       '<td><span class="badge '+PRI_BADGE[t.priority]+'">'+t.priority+'</span></td>' +
       '<td><span class="badge '+STATUS_BADGE[t.status]+'">'+STATUS_LABEL[t.status]+'</span></td>' +
@@ -1576,9 +1651,9 @@ function techAssignedHtml(){
     statCard('Resolved', mine.filter(t=>t.status==='RESOLVED').length, 'st-res') +
   '</div>';
   if (!open.length) html += '<div class="card empty" style="margin-bottom:14px">No active tickets assigned to you right now.</div>';
-  else html += '<div class="card" style="padding:0;margin-bottom:14px">' + ticketTableHtml(open, false) + '</div>';
+  else html += '<div class="card" style="padding:0;margin-bottom:14px">' + ticketTableHtml(open, false, true) + '</div>';
   if (closed.length){
-    html += '<div class="section-title" style="margin:18px 0 10px">Closed</div><div class="card" style="padding:0">' + ticketTableHtml(closed, false) + '</div>';
+    html += '<div class="section-title" style="margin:18px 0 10px">Closed</div><div class="card" style="padding:0">' + ticketTableHtml(closed, false, true) + '</div>';
   }
   return html;
 }
@@ -1674,7 +1749,7 @@ function adminTicketsHtml(){
     '</select>' +
   '</div>';
 
-  html += '<div class="card" style="padding:0">' + (list.length ? ticketTableHtml(list, true) : '<div class="empty">No tickets match these filters.</div>') + '</div>';
+  html += '<div class="card" style="padding:0">' + (list.length ? ticketTableHtml(list, true, true) : '<div class="empty">No tickets match these filters.</div>') + '</div>';
   return html;
 }
 
@@ -1717,7 +1792,7 @@ function usersHtml(){
           (iAmSuper && u.role === 'Admin' ? '<button class="btn btn-sm" onclick="transferSuperAdmin(\''+u.id+'\')">Make Super Admin</button>' : '<span class="faint">—</span>')) +
         '</td>' +
         '<td>'+esc(u.dept)+'</td><td class="faint">'+fmtRelative(u.lastActive)+'</td>' +
-        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-sm" style="margin-right:6px" onclick="adminResendReset(\''+u.id+'\')">Send reset email</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
+        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-sm" style="margin-right:6px" onclick="openResetPasswordModal(\''+u.id+'\')">Reset password</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
       )).join('') + '</tbody></table></div>' : '<div class="card empty">'+(q ? 'No active users match "'+esc(state.activeUsersQ)+'".' : 'No active users.')+'</div>';
   }
 
@@ -1731,8 +1806,23 @@ function usersHtml(){
   }
 
   if (state.userTab === 'resets'){
-    html += '<div class="card"><div class="section-title">Password resets now go straight to email</div>' +
-      '<div class="hint">Forgotten passwords are handled by Supabase Auth\'s built-in reset-by-email flow — nobody, including Admins, ever sees or sets another employee\'s password. If someone needs a nudge, use "Send reset email" next to their name in Active Users.</div></div>';
+    const pendingResets = passwordResets.filter(r => r.status === 'pending').sort((a,b)=>b.requestedAt-a.requestedAt);
+    html += '<div class="hint" style="margin-bottom:10px">Nobody gets an automatic email. When someone requests a reset here, set a new password directly and share it with them yourself over your internal chat — a ready-to-copy message is offered right after you set it. You can also reset anyone\'s password anytime from Active Users, without waiting for a request.</div>';
+    if (!pendingResets.length){
+      html += '<div class="card empty">No pending password reset requests.</div>';
+    } else {
+      html += '<div class="card" style="padding:0"><table><thead><tr><th>Requested</th><th>Email</th><th>Matched account</th><th></th></tr></thead><tbody>' +
+        pendingResets.map(r => {
+          const matched = users.find(u => u.email.toLowerCase() === r.email.toLowerCase());
+          return '<tr><td class="faint mono" style="font-size:11.5px">'+fmtRelative(r.requestedAt)+'</td>' +
+            '<td class="mono" style="font-size:12px">'+esc(r.email)+'</td>' +
+            '<td>'+(matched ? esc(matched.name) : '<span class="faint">No matching account</span>')+'</td>' +
+            '<td style="text-align:right;white-space:nowrap">' +
+              (matched ? '<button class="btn btn-primary btn-sm" style="margin-right:6px" onclick="openResetPasswordModal(\''+matched.id+'\',\''+r.id+'\')">Reset password</button>' : '') +
+              '<button class="btn btn-sm" onclick="dismissResetRequest(\''+r.id+'\')">Dismiss</button>' +
+            '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
   }
   return html;
 }
