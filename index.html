@@ -321,20 +321,25 @@ tr.row-click:hover td{ background:var(--surface-alt); }
 <body>
 <div id="app"></div>
 
+<!-- ================= SUPABASE CONFIG =================
+     Fill these in from Supabase Dashboard → Project Settings → API.
+     SUPABASE_ANON_KEY is the public "anon" key — safe to expose in
+     frontend code (Row Level Security is what actually protects data).
+     Never put the "service_role" secret key in this file. -->
 <script>
  const SUPABASE_URL = 'https://fofwjduyfvoaurnhhvkd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_P5PG4CUBMQEL01sxoet5vg_IJU5bKkk';
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <script>
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 /* ================= DATA ================= */
 
 const LOGO_SRC = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBYRXhpZgAATU0AKgAAAAgAAgESAAMAAAABAAEAAIdpAAQAAAABAAAAJgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAACgKADAAQAAAABAAACgAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgCgAKAAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwQDAwMEBQQEBAQFBwUFBQUFBwgHBwcHBwcICAgICAgICAoKCgoKCgsLCwsLDQ0NDQ0NDQ0NDf/bAEMBAgICAwMDBgMDBg0JBwkNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDf/dAAQAKP/aAAwDAQACEQMRAD8A/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9D9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/0f38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//S/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9P9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/1P38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//V/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9b9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/1/38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiioLq6t7K3ku7uRYoYlLySOQqqoGSSTwABQ2NJt2RPXL+JvGnhbwbZnUPFGp22mwDo1xIqFj6KCcsfYCvz8+O37ckWnzXPhn4OiO6mQtHLrUw3Qqeh+zp/wAtCP77fL6Bq/OfUfHnijX9Xk1nxPqNzq9zOcySXUhdv+AZ4QDsAAPavz3iDjylhYyp5fFVKi7u0fv6/LTzP6P4F+jlnGbUY43OJfV6b1UbXqNem0f+3tf7p+t/i39trwDpTvb+FtOvNbkUkCUgW0Bx3BfLkf8AAa8G1f8Abd+I90zDR9J0uwQn5fMElwwHud0Y/Svii2uoLyITW7bl6e4PoR2NWK/Cs08SOI69RxnW9n5RSVvnq/xP3nKvBHhHARUZYX2kl1qNyf3XUf8AyU+pn/bF+NLNkXOnKPQWnH6vV+x/bJ+MqzIrrpd122G1YE/isgr5TtbSa7fZCM+p7AeprsrKxhskwg3OR8znqfp6CvnK/iBndDX63O/bmZ6uK8PuE4R5f7PpX/wo+5PDv7ZOpqqJ4r8PROT997CcjH0SQEH/AL6r6M8H/tD/AAx8YMlvBqP9n3b4At78eQxJ7BiSjfg1fk5RXflPjVxHhJ/7RKNWPaSSfycbP77n5znXgjw1jYt4aDoy7xba+6V/wsfuhHKkqh4yGVhkEHIIqSvyM+Hfxw8dfDuaOKyu2v8ATQfmsbpi8e3/AGG+9Gfpx7V+jnwx+L/hX4n6d5ukymC/hUG4sZiBNH7j+8mejD8cV/QfBnidlXED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iigAooooAKKKKACiiigAooooAKKKKACg9KKD0oA//9D9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKD0ooPSgD//0f38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoPSiigD/0v38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//T/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/9T9/KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/1f38ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//W/fyiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACijIoyKLAFFGRRkU7MAooyKMiizAKKMijIoswCijIoyKLMAooyKMikAUUZFGRQAUUZFGRQAUUZFGRQAUUZFJketAC0UmR60ZHrTswFopMj1oyPWizAWikyPWjI9aLMBaKTI9aMj1oswFopMj1oyPWizAWikyPWjI9aLMBaKTI9aMj1pALRSZHrRketAC0UmR60ZHrQAtFJketLkUAFFGRRkUAFFGRRkUAFFGRRkUAFFGRRkUAFFGRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB//2Q==';
 
 const NOW = new Date();
-
-function hoursAgo(h){ return new Date(NOW.getTime() - h*3600*1000); }
-function hoursAhead(h){ return new Date(NOW.getTime() + h*3600*1000); }
 
 const CATEGORIES = ['Hardware','Software','Network','Email','Access / Permission','Laptop / Desktop','Printer','VPN','Other'];
 const SUBCATEGORIES = ['General issue','Not working','Configuration','Installation request','Repair needed','Other'];
@@ -344,26 +349,10 @@ const STATUS_LABEL = { OPEN:'Open', IN_PROGRESS:'In progress', NEXT_UP:'Next up'
 const STATUS_BADGE = { OPEN:'badge-open', IN_PROGRESS:'badge-prog', NEXT_UP:'badge-next', RESOLVED:'badge-res', CLOSED:'badge-closed' };
 const PRI_BADGE = { Critical:'pri-critical', High:'pri-high', Medium:'pri-medium', Low:'pri-low' };
 
-let ticketCounter = 132;
-function genTicketId(){ ticketCounter++; return 'IT-' + String(ticketCounter).padStart(6,'0'); }
-
-function mkTicket(o){
-  const created = o.createdAt || NOW;
-  return Object.assign({
-    comments:[], activity:[{ timestamp:created, actor:o.createdBy.name, action:'Created ticket' }],
-    resolutionNotes:'', assignedTo:null, updatedAt:created,
-  }, o, { slaDeadline: new Date(created.getTime() + SLA_HOURS[o.priority]*3600*1000) });
-}
-
+/* All of these now come from Supabase (see loadAllData below) instead of
+   being hardcoded here. They start empty and are populated after login. */
 let tickets = [];
-
-
-let users = [
-  { id:'admin-1', name:'IT Helpdesk', email:'ithelpdesk@ibridgetechsoft.com', password:'iBT@2013', dept:'IT', role:'Admin', status:'active', lastActive:hoursAgo(0.1), isSuperAdmin:true },
-  { id:'am-1', name:'Vijay Kumar NS', email:'vijaykumar.ns@ibridgetechsoft.com', password:'iBT@2013', dept:'IT', role:'Asset Manager', status:'active', lastActive:hoursAgo(0.1), assetLocations:['Bangalore'] },
-  { id:'tech-1', name:'Akhil', email:'dm@ibridgetechsoft.com', password:'iBT@2013', dept:'IT', role:'Technician', status:'active', lastActive:hoursAgo(0.1) },
-  { id:'user-1', name:'Charan CS', email:'chran.cs@ibridgetechsoft.com', password:'Charan@2026', dept:'General', role:'User', status:'active', lastActive:hoursAgo(0.1) },
-];
+let users = [];
 function getTechnicians(){ return users.filter(u => u.role === 'Technician' && u.status === 'active'); }
 
 let passwordResets = [];
@@ -371,8 +360,6 @@ let passwordResets = [];
 const ASSET_CATEGORIES = ['Laptop','Desktop','Monitor','Printer','Phone','Networking','Peripheral','Accessory','ID Card','Software License','Furniture','Other'];
 const ASSET_STATUSES = ['In Use','In Stock','Under Repair','Retired','Lost'];
 const LOCATIONS = ['Hyderabad','Bangalore','Noida','Remote','Others'];
-let assetCounter = 0;
-function genAssetId(){ assetCounter++; return 'iBT-' + String(assetCounter).padStart(4,'0'); }
 
 let assets = [];
 
@@ -385,90 +372,86 @@ let notifications = {
   assetmanager: [],
 };
 
-/* ================= PERSISTENCE (localStorage) =================
-   This app has no backend — everything lives in this browser tab.
-   Without this, closing the tab, reloading, or a colleague opening
-   the file fresh would wipe every pending signup, password change,
-   ticket, and asset. Saving to localStorage after every change (and
-   loading it back on startup) makes data durable across reloads on
-   this device/browser. It still won't sync across different devices
-   or browsers — that needs a real backend. */
-const STORAGE_KEY = 'itdesk_ibridge_data_v1';
-const DATE_FIELDS = {
-  ticket: ['createdAt','updatedAt','slaDeadline'],
-  ticketActivity: ['timestamp'],
-  ticketComment: ['timestamp'],
-  user: ['lastActive','requestedAt'],
-  asset: ['joiningDate','assetAllotDate','exitDate'],
-  auditEntry: ['timestamp'],
-  passwordReset: ['requestedAt'],
-  notification: ['time'],
-};
-function reviveDates(obj, fields){
-  if (!obj) return obj;
-  fields.forEach(f => { if (obj[f]) obj[f] = new Date(obj[f]); });
-  return obj;
-}
-function hasLocalStorage(){
-  try{
-    if (typeof localStorage === 'undefined') return false;
-    const k = '__itdesk_test__';
-    localStorage.setItem(k,'1'); localStorage.removeItem(k);
-    return true;
-  } catch(e){ return false; }
-}
-const STORAGE_AVAILABLE = hasLocalStorage();
+/* ================= SUPABASE DATA LAYER =================
+   Everything now lives in Postgres (see schema.sql). loadAllData() fetches
+   the tables this signed-in user is allowed to see (enforced by Row Level
+   Security policies, not by this code) and rebuilds the same in-memory
+   shapes (tickets/users/assets/auditLog/notifications) the rest of the UI
+   already expects, then re-renders. Every mutation below writes to
+   Supabase first, then calls loadAllData() to refresh the screen — so the
+   UI is always showing what's actually in the database. */
 
-function saveToStorage(){
-  if (!STORAGE_AVAILABLE) return;
-  try{
-    const payload = { ticketCounter, assetCounter, tickets, users, assets, auditLog, passwordResets, notifications };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  } catch(e){ /* storage full or blocked — fail silently, app still works in-memory */ }
-}
-
-function loadFromStorage(){
-  if (!STORAGE_AVAILABLE) return false;
-  let raw;
-  try{ raw = localStorage.getItem(STORAGE_KEY); } catch(e){ return false; }
-  if (!raw) return false;
-  let data;
-  try{ data = JSON.parse(raw); } catch(e){ return false; }
-  if (!data || !Array.isArray(data.tickets) || !Array.isArray(data.users)) return false;
-
-  data.tickets.forEach(t => {
-    reviveDates(t, DATE_FIELDS.ticket);
-    (t.activity||[]).forEach(a => reviveDates(a, DATE_FIELDS.ticketActivity));
-    (t.comments||[]).forEach(c => reviveDates(c, DATE_FIELDS.ticketComment));
-  });
-  data.users.forEach(u => reviveDates(u, DATE_FIELDS.user));
-  (data.assets||[]).forEach(a => reviveDates(a, DATE_FIELDS.asset));
-  (data.auditLog||[]).forEach(a => reviveDates(a, DATE_FIELDS.auditEntry));
-  (data.passwordResets||[]).forEach(r => reviveDates(r, DATE_FIELDS.passwordReset));
-  Object.keys(data.notifications||{}).forEach(role => {
-    (data.notifications[role]||[]).forEach(n => reviveDates(n, DATE_FIELDS.notification));
+async function loadAllData(){
+  const [profilesRes, ticketsRes, commentsRes, activityRes, assetsRes, auditRes, notifRes] = await Promise.all([
+    sb.from('profiles').select('*'),
+    sb.from('tickets').select('*'),
+    sb.from('ticket_comments').select('*'),
+    sb.from('ticket_activity').select('*'),
+    sb.from('assets').select('*'),
+    sb.from('audit_log').select('*').order('timestamp', { ascending:false }),
+    sb.from('notifications').select('*').order('time', { ascending:false }),
+  ]);
+  [profilesRes, ticketsRes, commentsRes, activityRes, assetsRes, auditRes, notifRes].forEach(r => {
+    if (r.error) console.error('Supabase load error:', r.error.message);
   });
 
-  ticketCounter = data.ticketCounter || ticketCounter;
-  assetCounter = data.assetCounter || assetCounter;
-  tickets = data.tickets;
-  users = data.users;
-  assets = data.assets || [];
-  auditLog = data.auditLog || [];
-  passwordResets = data.passwordResets || [];
-  notifications = data.notifications || notifications;
-  return true;
+  users = (profilesRes.data || []).map(u => ({
+    id: u.id, name: u.name, email: u.email, dept: u.dept, role: u.role, status: u.status,
+    isSuperAdmin: !!u.is_super_admin, assetLocations: u.asset_locations || [],
+    lastActive: u.last_active ? new Date(u.last_active) : null,
+    requestedAt: u.requested_at ? new Date(u.requested_at) : null,
+  }));
+  const userById = Object.fromEntries(users.map(u => [u.id, u]));
+
+  const commentsByTicket = {}, activityByTicket = {};
+  (commentsRes.data || []).forEach(c => (commentsByTicket[c.ticket_id] ||= []).push(
+    { author:c.author_name, role:c.role, internal:!!c.internal, text:c.text, timestamp:new Date(c.timestamp) }));
+  (activityRes.data || []).forEach(a => (activityByTicket[a.ticket_id] ||= []).push(
+    { actor:a.actor, action:a.action, timestamp:new Date(a.timestamp) }));
+
+  tickets = (ticketsRes.data || []).map(t => ({
+    id:t.id, subject:t.subject, category:t.category, subcategory:t.subcategory,
+    priority:t.priority, status:t.status, description:t.description, location:t.location, department:t.department,
+    createdBy: { id:t.created_by, name: userById[t.created_by] ? userById[t.created_by].name : '—' },
+    assignedTo: t.assigned_to ? { id:t.assigned_to, name: userById[t.assigned_to] ? userById[t.assigned_to].name : '—' } : null,
+    createdAt:new Date(t.created_at), updatedAt:new Date(t.updated_at),
+    slaDeadline: t.sla_deadline ? new Date(t.sla_deadline) : null,
+    resolutionNotes: t.resolution_notes || '', attachment: t.attachment || '',
+    comments: (commentsByTicket[t.id]||[]).sort((a,b)=>a.timestamp-b.timestamp),
+    activity: (activityByTicket[t.id]||[]).sort((a,b)=>a.timestamp-b.timestamp),
+  }));
+
+  assets = (assetsRes.data || []).map(a => ({
+    id:a.id, name:a.name, category:a.category, serialNumber:a.serial_number, assignedTo:a.assigned_to || '',
+    department:a.department, location:a.location, status:a.status, vendor:a.vendor,
+    joiningDate: a.joining_date ? new Date(a.joining_date) : null,
+    assetAllotDate: a.asset_allot_date ? new Date(a.asset_allot_date) : null,
+    exitDate: a.exit_date ? new Date(a.exit_date) : null, notes: a.notes || '',
+  }));
+
+  auditLog = (auditRes.data || []).map(a => ({
+    timestamp:new Date(a.timestamp), user:a.user_name, role:a.role, action:a.action,
+    ticketId:a.ticket_id, oldValue:a.old_value, newValue:a.new_value,
+  }));
+
+  notifications = { user:[], technician:[], admin:[], assetmanager:[] };
+  (notifRes.data || []).forEach(n => {
+    if (!notifications[n.role]) notifications[n.role] = [];
+    notifications[n.role].push({ text:n.text, time:new Date(n.time) });
+  });
+
+  passwordResets = []; // native Supabase email reset now handles this — see doForgotPassword()
+
+  render();
 }
 
-function clearStoredDataAndReload(){
-  try{ if (STORAGE_AVAILABLE) localStorage.removeItem(STORAGE_KEY); } catch(e){}
-  location.reload();
+async function logAuditRemote(action, ticketId, oldValue, newValue){
+  const p = currentPersona();
+  await sb.from('audit_log').insert({ user_name:p.name, role:p.role, action, ticket_id:ticketId, old_value:oldValue, new_value:newValue });
 }
-function confirmClearStoredData(){
-  openModal({ kind:'confirm-clear-storage', title:'Clear saved data?', message:'This erases everything saved in this browser (tickets, users, assets, password changes) and reloads back to the original sample accounts. This can\'t be undone.', confirmLabel:'Clear & reload' });
+async function notifyRemote(role, text){
+  await sb.from('notifications').insert({ role, text });
 }
-
-const LOADED_FROM_STORAGE = loadFromStorage();
 
 /* ================= STATE ================= */
 const state = {
@@ -480,6 +463,7 @@ const state = {
   selectedTicketId: null,
   filter: { status:'all', priority:'all', category:'all', q:'' },
   userTab: 'pending',
+  activeUsersQ: '',
   roleMenuOpen: false,
   mobileNavOpen: false,
   notifOpen: false,
@@ -491,13 +475,73 @@ const state = {
   assetEditingId: null,
   assetImportMsg: null,
   currentUserId: null,
-  autoExport: false,
   modal: null,
   exportFolderHandle: null,
   exportFolderName: null,
   dailyAutoExportEnabled: false,
   lastAutoExportDate: null,
 };
+
+function roleKeyFor(role){
+  return role === 'Admin' ? 'admin' : role === 'Technician' ? 'technician' : role === 'Asset Manager' ? 'assetmanager' : 'user';
+}
+function defaultViewFor(roleKey){
+  return roleKey === 'admin' ? 'dashboard' : roleKey === 'technician' ? 'tech-assigned' : roleKey === 'assetmanager' ? 'assets' : 'new-ticket';
+}
+
+/* Session restore: Supabase Auth keeps its own session in localStorage and
+   refreshes it automatically, so a page reload just needs to ask it "am I
+   still logged in?" — no custom session code needed. */
+async function restoreSession(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session){ render(); return; }
+  const { data:profile, error } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if (error || !profile || profile.status !== 'active'){
+    // signed in with Supabase but not an approved/active app user (e.g. still pending, or disabled)
+    if (profile && profile.status === 'pending') state.authError = 'Your registration is still pending admin approval.';
+    if (profile && profile.status === 'disabled') state.authError = 'This account has been disabled. Contact an administrator.';
+    await sb.auth.signOut();
+    render();
+    return;
+  }
+  state.authenticated = true;
+  state.currentUserId = profile.id;
+  state.role = roleKeyFor(profile.role);
+  state.view = defaultViewFor(state.role);
+  await sb.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', profile.id);
+  await loadAllData();
+  setupRealtime();
+}
+
+/* ================= REALTIME =================
+   Without this, everyone only ever sees their OWN changes until they hit
+   refresh — a new ticket from a coworker, an approval, a status change,
+   etc. wouldn't show up until reload. This subscribes to every table and
+   quietly re-fetches + re-renders whenever anything changes anywhere,
+   for anyone logged in. Requires running, once, in Supabase SQL Editor:
+     alter publication supabase_realtime add table
+       tickets, ticket_comments, ticket_activity, profiles, assets,
+       notifications, audit_log; */
+let realtimeChannel = null;
+let realtimeReloadTimer = null;
+function scheduleRealtimeReload(){
+  // Debounced: several changes landing at once (e.g. a ticket + its
+  // activity row) only trigger one reload, not one per row.
+  clearTimeout(realtimeReloadTimer);
+  realtimeReloadTimer = setTimeout(() => { if (state.authenticated) loadAllData(); }, 400);
+}
+function setupRealtime(){
+  if (realtimeChannel) return; // already listening
+  realtimeChannel = sb.channel('itdesk-live-updates');
+  ['tickets','ticket_comments','ticket_activity','profiles','assets','notifications','audit_log'].forEach(table => {
+    realtimeChannel.on('postgres_changes', { event:'*', schema:'public', table }, scheduleRealtimeReload);
+  });
+  realtimeChannel.subscribe();
+}
+function teardownRealtime(){
+  if (realtimeChannel){ sb.removeChannel(realtimeChannel); realtimeChannel = null; }
+  clearTimeout(realtimeReloadTimer);
+}
 
 /* ================= AUTH ================= */
 function pwFieldHtml(id, label, placeholder, autocomplete){
@@ -526,23 +570,27 @@ function checkPasswordMatch(){
 
 function switchAuthView(view){ state.authView = view; state.authError = ''; render(); }
 
-function attemptLogin(){
+async function attemptLogin(){
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const password = document.getElementById('login-password').value;
   if (!email || !password){ state.authError = 'Enter your email and password.'; render(); return; }
-  const match = users.find(u => u.email.toLowerCase() === email && u.password === password);
-  if (!match){ state.authError = 'Incorrect email or password.'; render(); return; }
-  if (match.status === 'disabled'){ state.authError = 'This account has been disabled. Contact an administrator.'; render(); return; }
-  if (match.status === 'pending'){ state.authError = 'Your registration is still pending admin approval.'; render(); return; }
+  state.authError = 'Signing in…'; render();
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error){ state.authError = 'Login failed: ' + error.message + ' (code: ' + (error.status||'?') + ')'; render(); return; }
+  const { data:profile, error: pErr } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  if (pErr || !profile){ state.authError = 'Could not load your account: ' + (pErr ? pErr.message : 'no profile row found') + '.'; await sb.auth.signOut(); render(); return; }
+  if (profile.status === 'disabled'){ state.authError = 'This account has been disabled. Contact an administrator.'; await sb.auth.signOut(); render(); return; }
+  if (profile.status === 'pending'){ state.authError = 'Your registration is still pending admin approval.'; await sb.auth.signOut(); render(); return; }
   state.authenticated = true;
   state.authError = '';
-  state.currentUserId = match.id;
-  match.lastActive = new Date();
-  const roleKey = match.role === 'Admin' ? 'admin' : match.role === 'Technician' ? 'technician' : match.role === 'Asset Manager' ? 'assetmanager' : 'user';
-  switchRole(roleKey);
+  state.currentUserId = profile.id;
+  await sb.from('profiles').update({ last_active:new Date().toISOString() }).eq('id', profile.id);
+  switchRole(roleKeyFor(profile.role));
+  await loadAllData();
+  setupRealtime();
 }
 
-function doSignup(){
+async function doSignup(){
   const name = document.getElementById('su-name').value.trim();
   const email = document.getElementById('su-email').value.trim().toLowerCase();
   const dept = document.getElementById('su-dept').value.trim();
@@ -550,26 +598,42 @@ function doSignup(){
   const pw2 = document.getElementById('su-confirm').value;
   if (!name || !email || !dept || !pw || !pw2){ state.authError = 'Fill in every field to create an account.'; render(); return; }
   if (pw !== pw2){ state.authError = 'Passwords don\'t match.'; render(); return; }
-  if (users.some(u => u.email === email)){ state.authError = 'An account with this email already exists.'; render(); return; }
-  users.push({ id:'p'+Date.now(), name, email, dept, password:pw, requestedRole:'User', status:'pending', requestedAt:new Date() });
-  notify('admin', 'New registration pending: ' + name);
+  if (pw.length < 6){ state.authError = 'Password must be at least 6 characters.'; render(); return; }
+  state.authError = 'Creating account…'; render();
+  // Supabase Auth creates the login; a database trigger (see schema.sql)
+  // automatically creates the matching "pending" profile row.
+  const { data, error } = await sb.auth.signUp({
+    email, password: pw, options: { data: { name, dept } },
+  });
+  if (error){
+    state.authError = error.message.includes('already registered') || error.message.includes('exists')
+      ? 'An account with this email already exists.' : error.message;
+    render(); return;
+  }
+  await sb.from('notifications').insert({ role:'admin', text:'New registration pending: ' + name });
+  // Signing up can auto-create a session; sign back out since the account
+  // still needs admin approval before it's usable.
+  await sb.auth.signOut();
   state.authView = 'signup-done';
   state.authError = '';
   render();
 }
 
-function doForgotPassword(){
+async function doForgotPassword(){
   const email = document.getElementById('fp-email').value.trim().toLowerCase();
   if (!email){ state.authError = 'Enter the email on your account.'; render(); return; }
-  const owner = users.find(u => u.email === email);
-  passwordResets.unshift({ id:'pr'+Date.now(), userName: owner ? owner.name : email.split('@')[0], email, requestedAt:new Date(), status:'pending' });
-  notify('admin', 'Password reset requested by ' + (owner ? owner.name : email));
+  state.authError = 'Sending…'; render();
+  // Uses Supabase Auth's built-in reset-by-email flow — no admin needs to
+  // see or set anyone's password.
+  await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
   state.authView = 'forgot-done';
   state.authError = '';
   render();
 }
 
-function logout(){
+async function logout(){
+  teardownRealtime();
+  await sb.auth.signOut();
   state.authenticated = false;
   state.authView = 'login';
   state.authError = '';
@@ -599,6 +663,7 @@ function toggleRoleMenu(){ state.roleMenuOpen = !state.roleMenuOpen; state.notif
 function toggleNotif(){ state.notifOpen = !state.notifOpen; state.roleMenuOpen = false; render(); }
 function setFilter(key, val){ state.filter[key] = val; render(); }
 function setUserTab(tab){ state.userTab = tab; render(); }
+function setActiveUsersSearch(q){ state.activeUsersQ = q; render(); }
 
 /* ================= HELPERS ================= */
 function fmtDateTime(d){
@@ -615,30 +680,6 @@ function getTicket(id){ return tickets.find(t => t.id === id); }
 function initials(name){ return name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase(); }
 function esc(s){ const d=document.createElement('div'); d.innerText = s==null?'':s; return d.innerHTML; }
 
-function logAudit(actorName, actorRole, action, ticketId, oldValue, newValue){
-  auditLog.unshift({ timestamp:new Date(), user:actorName, role:actorRole, action, ticketId, oldValue, newValue });
-}
-function notify(role, text){
-  notifications[role].unshift({ text, time:new Date() });
-}
-function addActivity(ticket, actor, action){
-  ticket.activity.push({ timestamp:new Date(), actor, action });
-  ticket.updatedAt = new Date();
-}
-
-/* Auto-export: when enabled in Settings, silently re-download the relevant
-   dataset as CSV every time it changes, so an Excel copy is always current. */
-function maybeAutoExport(dataset){
-  if (!state.autoExport) return;
-  if (dataset === 'tickets') exportTicketsCSV();
-  else if (dataset === 'users') exportUsersCSV();
-  else if (dataset === 'assets') exportAssetsCSV();
-}
-function toggleAutoExport(on){
-  state.autoExport = on;
-  render();
-}
-
 /* ================= MODAL (replaces native prompt/alert/confirm — those get
    silently blocked inside sandboxed iframe previews, which is why buttons
    that used them could look "broken") ================= */
@@ -653,20 +694,8 @@ function closeModal(){ state.modal = null; render(); }
 function confirmModal(){
   const m = state.modal;
   if (!m) return;
-  if (m.kind === 'set-password'){
-    const val = document.getElementById('modal-input').value;
-    if (!val){
-      const err = document.getElementById('modal-error');
-      if (err) err.style.display = 'block';
-      return;
-    }
-    if (m.action === 'admin-reset'){ doAdminResetPassword(m.targetId, val); return; }
-    if (m.action === 'approve-reset'){ doApproveReset(m.targetId, val); return; }
-  } else if (m.kind === 'confirm-delete-asset'){
+  if (m.kind === 'confirm-delete-asset'){
     doDeleteAsset(m.targetId);
-  } else if (m.kind === 'confirm-clear-storage'){
-    clearStoredDataAndReload();
-    return;
   } else if (m.kind === 'edit-user'){
     const name = document.getElementById('modal-name').value.trim();
     const email = document.getElementById('modal-email').value.trim().toLowerCase();
@@ -718,7 +747,7 @@ function modalHtml(){
 }
 
 /* ================= ACTIONS ================= */
-function submitNewTicket(){
+async function submitNewTicket(){
   const subject = document.getElementById('nf-subject').value.trim();
   const category = document.getElementById('nf-category').value;
   const subcategory = document.getElementById('nf-subcategory').value;
@@ -737,137 +766,129 @@ function submitNewTicket(){
 
   const user = currentPersona();
   const attachment = (attachmentInput.files && attachmentInput.files[0]) ? attachmentInput.files[0].name : null;
-  const id = genTicketId();
-  const t = mkTicket({
-    id, subject, category, subcategory: subcategory || 'General issue', priority, description,
-    attachment, location: location || 'Not specified', department: user.dept, createdBy:{id:user.id,name:user.name},
-    createdAt:new Date(), status:'OPEN',
-  });
-  tickets.unshift(t);
-  logAudit(user.name, 'User', 'Created ticket', id, '—', 'Open');
-  notify('admin', 'New ticket ' + id + ' raised by ' + user.name + (priority==='Critical' ? ' — Critical priority' : ''));
-  notify('user', 'Ticket ' + id + ' was created and is now open');
-  maybeAutoExport('tickets');
+  const slaDeadline = new Date(Date.now() + SLA_HOURS[priority]*3600*1000).toISOString();
+
+  const { data:t, error } = await sb.from('tickets').insert({
+    subject, category, subcategory: subcategory || 'General issue', priority, description,
+    attachment, location: location || 'Not specified', department: user.dept,
+    created_by: user.id, status:'OPEN', sla_deadline: slaDeadline,
+  }).select().single();
+  if (error){ errEl.style.display='block'; errEl.innerText = 'Could not create ticket: ' + error.message; return; }
+
+  await sb.from('ticket_activity').insert({ ticket_id:t.id, actor:user.name, action:'Created ticket' });
+  await logAuditRemote('Created ticket', t.id, '—', 'Open');
+  await notifyRemote('admin', 'New ticket ' + t.id + ' raised by ' + user.name + (priority==='Critical' ? ' — Critical priority' : ''));
+  await notifyRemote('user', 'Ticket ' + t.id + ' was created and is now open');
 
   state.view = 'ticket-created';
-  state.selectedTicketId = id;
-  render();
+  state.selectedTicketId = t.id;
+  await loadAllData();
 }
 
-function addCommentToTicket(id){
+async function addCommentToTicket(id){
   const box = document.getElementById('comment-box');
   const text = box.value.trim();
   if (!text) return;
   const internalBox = document.getElementById('comment-internal');
   const internal = internalBox ? internalBox.checked : false;
-  const t = getTicket(id);
   const actor = currentPersona();
   const roleLabel = state.role === 'admin' ? 'Admin' : (state.role === 'technician' ? 'Technician' : 'User');
-  t.comments.push({ author:actor.name, role:roleLabel, internal, text, timestamp:new Date() });
-  addActivity(t, actor.name, internal ? 'Added internal note' : 'Added comment');
+  await sb.from('ticket_comments').insert({ ticket_id:id, author_id:actor.id, author_name:actor.name, role:roleLabel, internal, text });
+  await sb.from('ticket_activity').insert({ ticket_id:id, actor:actor.name, action: internal ? 'Added internal note' : 'Added comment' });
   if (state.role !== 'user' && !internal){
-    notify('user', (roleLabel) + ' ' + actor.name + ' commented on ' + id);
+    await notifyRemote('user', roleLabel + ' ' + actor.name + ' commented on ' + id);
   }
-  render();
+  await loadAllData();
 }
 
-function changeStatus(id, newStatus){
+async function changeStatus(id, newStatus, resolutionNotes){
   const t = getTicket(id);
   const actor = currentPersona();
   const roleLabel = state.role === 'admin' ? 'Admin' : 'Technician';
   const old = STATUS_LABEL[t.status];
-  t.status = newStatus;
-  addActivity(t, actor.name, 'Status changed: ' + old + ' → ' + STATUS_LABEL[newStatus]);
-  logAudit(actor.name, roleLabel, 'Status change', id, old, STATUS_LABEL[newStatus]);
-  notify('user', 'Ticket ' + id + ' status changed to ' + STATUS_LABEL[newStatus]);
-  if (newStatus === 'RESOLVED') notify('user', 'Your ticket ' + id + ' was marked resolved');
-  if (newStatus === 'CLOSED') notify('user', 'Your ticket ' + id + ' was closed');
-  maybeAutoExport('tickets');
-  render();
+  const patch = { status:newStatus, updated_at:new Date().toISOString() };
+  if (resolutionNotes !== undefined) patch.resolution_notes = resolutionNotes;
+  await sb.from('tickets').update(patch).eq('id', id);
+  await sb.from('ticket_activity').insert({ ticket_id:id, actor:actor.name, action:'Status changed: ' + old + ' → ' + STATUS_LABEL[newStatus] });
+  await logAuditRemote('Status change', id, old, STATUS_LABEL[newStatus]);
+  await notifyRemote('user', 'Ticket ' + id + ' status changed to ' + STATUS_LABEL[newStatus]);
+  if (newStatus === 'RESOLVED') await notifyRemote('user', 'Your ticket ' + id + ' was marked resolved');
+  if (newStatus === 'CLOSED') await notifyRemote('user', 'Your ticket ' + id + ' was closed');
+  await loadAllData();
 }
 
-function assignTechnician(id, techId){
+async function assignTechnician(id, techId){
   const t = getTicket(id);
   const actor = currentPersona();
   const tech = getTechnicians().find(x => x.id === techId);
   const old = t.assignedTo ? t.assignedTo.name : 'Unassigned';
-  t.assignedTo = tech ? { id:tech.id, name:tech.name } : null;
-  addActivity(t, actor.name, 'Assigned to ' + (tech ? tech.name : 'nobody'));
-  logAudit(actor.name, state.role === 'admin' ? 'Admin' : 'Technician', 'Assigned technician', id, old, tech ? tech.name : 'Unassigned');
-  if (tech) notify('technician', 'New ticket ' + id + ' assigned to you' + (t.priority==='Critical' ? ' — Critical priority' : ''));
-  maybeAutoExport('tickets');
-  render();
+  await sb.from('tickets').update({ assigned_to: tech ? tech.id : null, updated_at:new Date().toISOString() }).eq('id', id);
+  await sb.from('ticket_activity').insert({ ticket_id:id, actor:actor.name, action:'Assigned to ' + (tech ? tech.name : 'nobody') });
+  await logAuditRemote('Assigned technician', id, old, tech ? tech.name : 'Unassigned');
+  if (tech) await notifyRemote('technician', 'New ticket ' + id + ' assigned to you' + (t.priority==='Critical' ? ' — Critical priority' : ''));
+  await loadAllData();
 }
 
-function changePriority(id, priority){
+async function changePriority(id, priority){
   const t = getTicket(id);
   const old = t.priority;
-  t.priority = priority;
-  t.slaDeadline = new Date(t.createdAt.getTime() + SLA_HOURS[priority]*3600*1000);
+  const slaDeadline = new Date(t.createdAt.getTime() + SLA_HOURS[priority]*3600*1000).toISOString();
   const actor = currentPersona();
-  addActivity(t, actor.name, 'Priority changed: ' + old + ' → ' + priority);
-  logAudit(actor.name, 'Admin', 'Priority change', id, old, priority);
-  maybeAutoExport('tickets');
-  render();
+  await sb.from('tickets').update({ priority, sla_deadline:slaDeadline, updated_at:new Date().toISOString() }).eq('id', id);
+  await sb.from('ticket_activity').insert({ ticket_id:id, actor:actor.name, action:'Priority changed: ' + old + ' → ' + priority });
+  await logAuditRemote('Priority change', id, old, priority);
+  await loadAllData();
 }
 
-function changeCategory(id, category){
+async function changeCategory(id, category){
   const t = getTicket(id);
   const old = t.category;
-  t.category = category;
   const actor = currentPersona();
-  addActivity(t, actor.name, 'Category changed: ' + old + ' → ' + category);
-  logAudit(actor.name, 'Admin', 'Category change', id, old, category);
-  maybeAutoExport('tickets');
-  render();
+  await sb.from('tickets').update({ category, updated_at:new Date().toISOString() }).eq('id', id);
+  await sb.from('ticket_activity').insert({ ticket_id:id, actor:actor.name, action:'Category changed: ' + old + ' → ' + category });
+  await logAuditRemote('Category change', id, old, category);
+  await loadAllData();
 }
 
-function saveResolutionAndResolve(id){
+async function saveResolutionAndResolve(id){
   const notesEl = document.getElementById('resolution-notes');
-  const t = getTicket(id);
-  t.resolutionNotes = notesEl.value.trim();
-  changeStatus(id, 'RESOLVED');
+  await changeStatus(id, 'RESOLVED', notesEl.value.trim());
 }
 
-function reopenTicket(id){
-  const t = getTicket(id);
+async function reopenTicket(id){
   const actor = currentPersona();
-  t.status = 'OPEN';
-  addActivity(t, actor.name, 'Reopened ticket (Admin override)');
-  logAudit(actor.name, 'Admin', 'Reopened ticket', id, 'Closed', 'Open');
-  notify('user', 'Ticket ' + id + ' was reopened by an admin');
-  maybeAutoExport('tickets');
-  render();
+  await sb.from('tickets').update({ status:'OPEN', updated_at:new Date().toISOString() }).eq('id', id);
+  await sb.from('ticket_activity').insert({ ticket_id:id, actor:actor.name, action:'Reopened ticket (Admin override)' });
+  await logAuditRemote('Reopened ticket', id, 'Closed', 'Open');
+  await notifyRemote('user', 'Ticket ' + id + ' was reopened by an admin');
+  await loadAllData();
 }
 
 /* User management actions */
-function approveUser(id){
-  const u = users.find(x=>x.id===id);
-  u.status = 'active'; u.role = 'User'; u.lastActive = new Date();
-  logAudit(currentPersona().name, 'Admin', 'Approved registration', '—', 'Pending', 'Active');
-  maybeAutoExport('users');
-  render();
+async function approveUser(id){
+  await sb.from('profiles').update({ status:'active', role:'User', last_active:new Date().toISOString() }).eq('id', id);
+  await logAuditRemote('Approved registration', '—', 'Pending', 'Active');
+  await loadAllData();
 }
-function rejectUser(id){
-  users = users.filter(x=>x.id!==id);
-  logAudit(currentPersona().name, 'Admin', 'Rejected registration', '—', 'Pending', 'Rejected');
-  maybeAutoExport('users');
-  render();
+async function rejectUser(id){
+  // Can't delete the underlying Supabase Auth account from the client
+  // (needs the service-role key on a server) — disabling blocks login,
+  // which is the practical effect of "reject" here.
+  await sb.from('profiles').update({ status:'disabled' }).eq('id', id);
+  await logAuditRemote('Rejected registration', '—', 'Pending', 'Rejected (disabled)');
+  await loadAllData();
 }
-function disableUser(id){
+async function disableUser(id){
   const u = users.find(x=>x.id===id);
-  if (u.isSuperAdmin) return;
-  u.status = 'disabled';
-  logAudit(currentPersona().name, 'Admin', 'Disabled user', '—', 'Active', 'Disabled');
-  maybeAutoExport('users');
-  render();
+  if (!u || u.isSuperAdmin) return;
+  await sb.from('profiles').update({ status:'disabled' }).eq('id', id);
+  await logAuditRemote('Disabled user', '—', 'Active', 'Disabled');
+  await loadAllData();
 }
-function enableUser(id){
-  const u = users.find(x=>x.id===id);
-  u.status = 'active';
-  logAudit(currentPersona().name, 'Admin', 'Enabled user', '—', 'Disabled', 'Active');
-  maybeAutoExport('users');
-  render();
+async function enableUser(id){
+  await sb.from('profiles').update({ status:'active' }).eq('id', id);
+  await logAuditRemote('Enabled user', '—', 'Disabled', 'Active');
+  await loadAllData();
 }
 function getSuperAdmin(){ return users.find(u => u.isSuperAdmin); }
 function isCurrentUserSuperAdmin(){
@@ -881,17 +902,17 @@ function editUserOpen(id){
   openModal({ kind:'edit-user', targetId:id, title:'Edit user details', confirmLabel:'Save changes',
     presetName:u.name, presetEmail:u.email, presetDept:u.dept });
 }
-function doEditUser(id, name, email, dept){
+async function doEditUser(id, name, email, dept){
   const u = users.find(x=>x.id===id);
   if (!u) return;
   const oldEmail = u.email;
-  u.name = name; u.email = email; u.dept = dept;
-  logAudit(currentPersona().name, 'Admin', 'Edited user details', '—', oldEmail, email);
-  maybeAutoExport('users');
-  openModal({ kind:'info', title:'User updated', message: name + '\'s details have been saved. If their email changed, they should use the new one to log in next time.' });
+  await sb.from('profiles').update({ name, dept }).eq('id', id);
+  await logAuditRemote('Edited user details', '—', oldEmail, email);
+  await loadAllData();
+  openModal({ kind:'info', title:'User updated', message: name + '\'s name and department have been saved. Note: this doesn\'t change their Supabase Auth login email — that has to be changed by the person themselves.' });
 }
 
-function changeUserRole(id, role){
+async function changeUserRole(id, role){
   const u = users.find(x=>x.id===id);
   const old = u.role;
   if (old === role) return;
@@ -899,66 +920,44 @@ function changeUserRole(id, role){
     openModal({ kind:'info', title:'Transfer Super Admin first', message:'This is the current Super Admin. Transfer Super Admin access to someone else before changing their role.' });
     return;
   }
-  u.role = role;
-  if (role === 'Asset Manager' && !u.assetLocations) u.assetLocations = [];
-  if (role !== 'Asset Manager') delete u.assetLocations;
-  logAudit(currentPersona().name, 'Admin', 'Changed user role', '—', old, role);
-  notify('admin', u.name + "'s role changed from " + old + ' to ' + role);
-  maybeAutoExport('users');
-  render();
+  const patch = { role, asset_locations: role === 'Asset Manager' ? (u.assetLocations||[]) : [] };
+  await sb.from('profiles').update(patch).eq('id', id);
+  await logAuditRemote('Changed user role', '—', old, role);
+  await notifyRemote('admin', u.name + "'s role changed from " + old + ' to ' + role);
+  await loadAllData();
 }
 
-function setUserAssetLocation(id, location){
+async function setUserAssetLocation(id, location){
   const u = users.find(x=>x.id===id);
-  u.assetLocations = location ? [location] : [];
-  logAudit(currentPersona().name, 'Admin', 'Updated asset manager location', '—', '—', u.name + ': ' + (location || 'None'));
-  maybeAutoExport('users');
-  render();
+  await sb.from('profiles').update({ asset_locations: location ? [location] : [] }).eq('id', id);
+  await logAuditRemote('Updated asset manager location', '—', '—', u.name + ': ' + (location || 'None'));
+  await loadAllData();
 }
 
-function transferSuperAdmin(id){
+async function transferSuperAdmin(id){
   if (!isCurrentUserSuperAdmin()) return;
   const target = users.find(x=>x.id===id);
   if (!target || target.role !== 'Admin') return;
   const previous = getSuperAdmin();
-  users.forEach(u => { u.isSuperAdmin = false; });
-  target.isSuperAdmin = true;
-  logAudit(currentPersona().name, 'Admin', 'Transferred Super Admin access', '—', previous ? previous.name : '—', target.name);
-  notify('admin', 'Super Admin access transferred to ' + target.name);
-  maybeAutoExport('users');
-  render();
+  if (previous) await sb.from('profiles').update({ is_super_admin:false }).eq('id', previous.id);
+  await sb.from('profiles').update({ is_super_admin:true }).eq('id', target.id);
+  await logAuditRemote('Transferred Super Admin access', '—', previous ? previous.name : '—', target.name);
+  await notifyRemote('admin', 'Super Admin access transferred to ' + target.name);
+  await loadAllData();
 }
-function approveReset(id){
-  const r = passwordResets.find(x=>x.id===id);
-  openModal({ kind:'set-password', targetId:id, action:'approve-reset', title:'Set a new password', message:'Approves ' + r.userName + '\'s (' + r.email + ') request and sets this as their new password immediately. Share it with them through your usual internal chat — nothing is emailed.', confirmLabel:'Set password & approve' });
-}
-function doApproveReset(id, newPassword){
-  const r = passwordResets.find(x=>x.id===id);
-  r.status = 'approved';
-  const owner = users.find(u => u.email === r.email);
-  if (owner) owner.password = newPassword;
-  logAudit(currentPersona().name, 'Admin', 'Approved password reset', '—', 'Pending', 'Password set by admin');
-  maybeAutoExport('users');
-  openModal({ kind:'info', title:'Password updated', message:'For ' + r.userName + ' (' + r.email + '). Share it with them through your internal chat — they can log in with it right away.' });
-}
-function rejectReset(id){
-  const r = passwordResets.find(x=>x.id===id);
-  r.status = 'rejected';
-  logAudit(currentPersona().name, 'Admin', 'Rejected password reset', '—', 'Pending', 'Rejected');
-  render();
-}
-function adminResetPassword(id){
+/* Password resets are now handled entirely by Supabase Auth's built-in
+   "forgot password" email flow (see doForgotPassword above) — nobody,
+   including Admins, ever sees or sets another employee's password.
+   Setting someone else's password directly would require the Supabase
+   service-role secret key, which must never be used client-side. If you
+   want a "reset on behalf of a user" admin button, it needs a small
+   server-side function (Supabase Edge Function) using that key. */
+async function adminResendReset(id){
   const u = users.find(x=>x.id===id);
   if (!u) return;
-  openModal({ kind:'set-password', targetId:id, action:'admin-reset', title:'Set a new password', message:'For ' + u.name + ' (' + u.email + '). Takes effect immediately — share it with them through your usual internal chat, nothing is emailed.', confirmLabel:'Save password' });
-}
-function doAdminResetPassword(id, newPassword){
-  const u = users.find(x=>x.id===id);
-  if (!u) return;
-  u.password = newPassword;
-  logAudit(currentPersona().name, 'Admin', 'Reset user password directly', '—', '—', u.name);
-  maybeAutoExport('users');
-  openModal({ kind:'info', title:'Password updated', message:'The new password for ' + u.name + ' is active now. Share it with them through chat — they can log in with it right away.' });
+  await sb.auth.resetPasswordForEmail(u.email, { redirectTo: window.location.href });
+  await logAuditRemote('Sent password reset email', '—', '—', u.name);
+  openModal({ kind:'info', title:'Reset email sent', message:'A password reset link was emailed to ' + u.name + ' (' + u.email + ').' });
 }
 
 /* ================= ASSETS ================= */
@@ -998,7 +997,7 @@ function readAssetForm(){
   };
 }
 
-function saveAssetForm(){
+async function saveAssetForm(){
   const data = readAssetForm();
   const errEl = document.getElementById('asset-form-error');
   const showErr = (msg) => { if (errEl){ errEl.style.display = 'block'; errEl.innerText = msg; } };
@@ -1014,16 +1013,23 @@ function saveAssetForm(){
 
   const actor = currentPersona();
   const actorRole = state.role === 'assetmanager' ? 'Asset Manager' : 'Admin';
+  const row = {
+    name:data.name, category:data.category, serial_number:data.serialNumber, assigned_to:data.assignedTo,
+    department:data.department, location:data.location, status:data.status, vendor:data.vendor,
+    joining_date: data.joiningDate ? data.joiningDate.toISOString().slice(0,10) : null,
+    asset_allot_date: data.assetAllotDate ? data.assetAllotDate.toISOString().slice(0,10) : null,
+    exit_date: data.exitDate ? data.exitDate.toISOString().slice(0,10) : null,
+    notes:data.notes,
+  };
   if (state.assetEditingId){
-    const a = assets.find(x => x.id === state.assetEditingId);
-    Object.assign(a, data);
-    logAudit(actor.name, actorRole, 'Updated asset', a.id, '—', a.name);
+    await sb.from('assets').update(row).eq('id', state.assetEditingId);
+    await logAuditRemote('Updated asset', state.assetEditingId, '—', data.name);
   } else {
-    const id = genAssetId();
-    assets.unshift(Object.assign({ id }, data));
-    logAudit(actor.name, actorRole, 'Added asset', id, '—', data.name);
+    const { data:inserted, error } = await sb.from('assets').insert(row).select().single();
+    if (error){ showErr('Could not save asset: ' + error.message); return; }
+    await logAuditRemote('Added asset', inserted.id, '—', data.name);
   }
-  maybeAutoExport('assets');
+  await loadAllData();
   closeAssetForm();
 }
 
@@ -1033,15 +1039,12 @@ function deleteAsset(id){
   if (state.role === 'assetmanager' && !currentPersona().assetLocations.includes(a.location)) return;
   openModal({ kind:'confirm-delete-asset', targetId:id, title:'Remove this asset?', message:'"' + a.name + '" (' + a.id + ') will be removed from the register. This can\'t be undone.', confirmLabel:'Delete' });
 }
-function doDeleteAsset(id){
+async function doDeleteAsset(id){
   const a = assets.find(x => x.id === id);
   if (!a) return;
-  const actor = currentPersona();
-  const actorRole = state.role === 'assetmanager' ? 'Asset Manager' : 'Admin';
-  assets = assets.filter(x => x.id !== id);
-  logAudit(actor.name, actorRole, 'Deleted asset', id, a.name, '—');
-  maybeAutoExport('assets');
-  render();
+  await sb.from('assets').delete().eq('id', id);
+  await logAuditRemote('Deleted asset', id, a.name, '—');
+  await loadAllData();
 }
 
 /* CSV import */
@@ -1091,7 +1094,7 @@ function triggerAssetImport(){
   reader.readAsText(input.files[0]);
 }
 
-function processAssetImport(text){
+async function processAssetImport(text){
   const rows = parseCSV(text);
   if (!rows.length){
     state.assetImportMsg = { type:'error', text:'That file looks empty.' };
@@ -1113,33 +1116,35 @@ function processAssetImport(text){
     const get = (key) => idx[key] !== undefined ? (row[idx[key]] || '').trim() : '';
     const name = get('name');
     if (!name){ skipped++; continue; }
-    const data = {
+    const dataRow = {
       name,
       category: ASSET_CATEGORIES.includes(get('category')) ? get('category') : 'Other',
-      serialNumber: get('serialNumber'),
-      assignedTo: get('assignedTo'),
+      serial_number: get('serialNumber'),
+      assigned_to: get('assignedTo'),
       department: get('department'),
       location: get('location'),
       status: ASSET_STATUSES.includes(get('status')) ? get('status') : 'In Stock',
       vendor: get('vendor'),
-      joiningDate: get('joiningDate') ? new Date(get('joiningDate')) : null,
-      assetAllotDate: get('assetAllotDate') ? new Date(get('assetAllotDate')) : null,
-      exitDate: get('exitDate') ? new Date(get('exitDate')) : null,
+      joining_date: get('joiningDate') || null,
+      asset_allot_date: get('assetAllotDate') || null,
+      exit_date: get('exitDate') || null,
       notes: get('notes'),
     };
     const providedId = get('id');
     const existing = providedId ? assets.find(a => a.id === providedId) : null;
     if (existing){
-      Object.assign(existing, data);
+      await sb.from('assets').update(dataRow).eq('id', existing.id);
       updated++;
+    } else if (providedId){
+      await sb.from('assets').insert(Object.assign({ id:providedId }, dataRow));
+      added++;
     } else {
-      const id = providedId || genAssetId();
-      assets.unshift(Object.assign({ id }, data));
+      await sb.from('assets').insert(dataRow);
       added++;
     }
   }
-  logAudit(currentPersona().name, 'Admin', 'Imported assets from CSV', '—', '—', added + ' added, ' + updated + ' updated');
-  maybeAutoExport('assets');
+  await logAuditRemote('Imported assets from CSV', '—', '—', added + ' added, ' + updated + ' updated');
+  await loadAllData();
   state.assetImportMsg = { type:'success', text:'Import complete — ' + added + ' added, ' + updated + ' updated' + (skipped ? ', ' + skipped + ' row(s) skipped (missing name)' : '') + '.' };
   render();
 }
@@ -1188,7 +1193,6 @@ const VIEW_TITLE = {
 
 /* ================= RENDER ================= */
 function render(){
-  saveToStorage();
   const app = document.getElementById('app');
   app.innerHTML = state.authenticated ? shellHtml() : authShellHtml();
 }
@@ -1379,12 +1383,11 @@ function myTicketsHtml(){
 }
 
 function ticketTableHtml(list, showAssignee){
-  return '<table><thead><tr><th>Ticket</th><th>Subject</th><th>Requested by</th><th>Priority</th><th>Status</th>' + (showAssignee?'<th>Assigned to</th>':'') + '<th>Created</th><th>Updated</th></tr></thead><tbody>' +
+  return '<table><thead><tr><th>Ticket</th><th>Subject</th><th>Priority</th><th>Status</th>' + (showAssignee?'<th>Assigned to</th>':'') + '<th>Created</th><th>Updated</th></tr></thead><tbody>' +
     list.map(t => (
       '<tr class="row-click" onclick="openTicket(\''+t.id+'\');state.view=\'ticket-detail\';render();">' +
       '<td class="tid">'+t.id+'</td>' +
       '<td>'+esc(t.subject)+'</td>' +
-      '<td class="muted">'+esc(t.createdBy.name)+'</td>' +
       '<td><span class="badge '+PRI_BADGE[t.priority]+'">'+t.priority+'</span></td>' +
       '<td><span class="badge '+STATUS_BADGE[t.status]+'">'+STATUS_LABEL[t.status]+'</span></td>' +
       (showAssignee? '<td class="muted">'+(t.assignedTo?esc(t.assignedTo.name):'—')+'</td>':'') +
@@ -1690,10 +1693,15 @@ function usersHtml(){
   }
 
   if (state.userTab === 'active'){
-    const active = users.filter(u=>u.status==='active');
+    const q = (state.activeUsersQ||'').trim().toLowerCase();
+    let active = users.filter(u=>u.status==='active');
+    if (q) active = active.filter(u => (u.name+' '+u.email+' '+u.dept+' '+(u.role||'')).toLowerCase().includes(q));
     const iAmSuper = isCurrentUserSuperAdmin();
     html += '<div class="hint" style="margin-bottom:10px">Change the Role dropdown to grant Technician, Admin, or location-scoped Asset Manager access.' + (iAmSuper ? ' As Super Admin, you can also hand the ⭐ Super Admin designation to another Admin below.' : '') + '</div>';
-    html += '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Super Admin</th><th>Department</th><th>Last active</th><th></th></tr></thead><tbody>' +
+    html += '<div class="filters" style="margin-bottom:10px">' +
+      '<input type="text" placeholder="Search by name, email, department or role…" value="'+esc(state.activeUsersQ||'')+'" oninput="setActiveUsersSearch(this.value)">' +
+    '</div>';
+    html += active.length ? '<div class="card" style="padding:0"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Location</th><th>Super Admin</th><th>Department</th><th>Last active</th><th></th></tr></thead><tbody>' +
       active.map(u => (
         '<tr><td>'+esc(u.name)+'</td><td class="mono" style="font-size:12px">'+esc(u.email)+'</td>' +
         '<td><select class="inline-select" onchange="changeUserRole(\''+u.id+'\', this.value)">' +
@@ -1709,8 +1717,8 @@ function usersHtml(){
           (iAmSuper && u.role === 'Admin' ? '<button class="btn btn-sm" onclick="transferSuperAdmin(\''+u.id+'\')">Make Super Admin</button>' : '<span class="faint">—</span>')) +
         '</td>' +
         '<td>'+esc(u.dept)+'</td><td class="faint">'+fmtRelative(u.lastActive)+'</td>' +
-        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-sm" style="margin-right:6px" onclick="adminResetPassword(\''+u.id+'\')">Reset password</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
-      )).join('') + '</tbody></table></div>';
+        '<td style="text-align:right;white-space:nowrap"><button class="btn btn-sm" style="margin-right:6px" onclick="editUserOpen(\''+u.id+'\')">Edit</button><button class="btn btn-sm" style="margin-right:6px" onclick="adminResendReset(\''+u.id+'\')">Send reset email</button><button class="btn btn-sm btn-danger" onclick="disableUser(\''+u.id+'\')" '+(u.isSuperAdmin?'disabled title="Transfer Super Admin to someone else first"':'')+'>Disable</button></td></tr>'
+      )).join('') + '</tbody></table></div>' : '<div class="card empty">'+(q ? 'No active users match "'+esc(state.activeUsersQ)+'".' : 'No active users.')+'</div>';
   }
 
   if (state.userTab === 'disabled'){
@@ -1723,12 +1731,8 @@ function usersHtml(){
   }
 
   if (state.userTab === 'resets'){
-    html += passwordResets.length ? '<div class="card" style="padding:0"><table><thead><tr><th>User</th><th>Email</th><th>Requested</th><th>Status</th><th></th></tr></thead><tbody>' +
-      passwordResets.map(r => (
-        '<tr><td>'+esc(r.userName)+'</td><td class="mono" style="font-size:12px">'+esc(r.email)+'</td><td class="faint">'+fmtRelative(r.requestedAt)+'</td>' +
-        '<td><span class="badge '+(r.status==='pending'?'badge-open':r.status==='approved'?'badge-res':'badge-closed')+'">'+r.status+'</span></td>' +
-        '<td style="text-align:right">' + (r.status==='pending' ? '<button class="btn btn-sm" style="margin-right:6px" onclick="rejectReset(\''+r.id+'\')">Reject</button><button class="btn btn-primary btn-sm" onclick="approveReset(\''+r.id+'\')">Set new password</button>' : '<span class="faint">Resolved</span>') + '</td></tr>'
-      )).join('') + '</tbody></table></div>' : '<div class="card empty">No password reset requests.</div>';
+    html += '<div class="card"><div class="section-title">Password resets now go straight to email</div>' +
+      '<div class="hint">Forgotten passwords are handled by Supabase Auth\'s built-in reset-by-email flow — nobody, including Admins, ever sees or sets another employee\'s password. If someone needs a nudge, use "Send reset email" next to their name in Active Users.</div></div>';
   }
   return html;
 }
@@ -2150,11 +2154,8 @@ function settingsHtml(){
   const otherAdmins = users.filter(u => u.role === 'Admin' && u.status === 'active' && !u.isSuperAdmin);
 
   let html = '<div class="card" style="max-width:560px;margin-bottom:16px">' +
-    '<div class="section-title">Local data storage</div>' +
-    (STORAGE_AVAILABLE ?
-      '<div class="hint" style="margin-bottom:10px">'+(LOADED_FROM_STORAGE ? 'Data was restored from this browser\'s storage — ' : 'Saving automatically to this browser\'s storage — ')+'every ticket, user, asset, and password change is saved here automatically and survives reloads and closing the tab. It only lives on this device and browser; a colleague opening this file on their own computer starts fresh, and clearing browser data will erase it here too.</div>' +
-      '<button class="btn btn-sm btn-danger" onclick="confirmClearStoredData()">Clear saved data & reset to defaults</button>'
-      : '<div class="banner banner-warn">This browser is blocking local storage (private/incognito mode, or storage disabled), so changes will NOT survive a reload — use Export data regularly to avoid losing work.</div>') +
+    '<div class="section-title">Data storage</div>' +
+    '<div class="hint" style="margin-bottom:10px">All data — tickets, users, assets, comments, and the audit log — now lives in your Supabase project (Postgres), not in this browser. Every signed-in employee on any device sees the same live data, protected by Row Level Security policies rather than by anything in this page. Use Export data for periodic CSV backups.</div>' +
   '</div>';
 
   html += '<div class="card" style="max-width:560px;margin-bottom:16px">' +
@@ -2188,12 +2189,6 @@ function settingsHtml(){
   '</div>';
 
   html += '<div class="card" style="max-width:560px;margin-top:16px">' +
-    '<div class="section-title">Automatic data backup</div>' +
-    '<div class="hint" style="margin-bottom:10px">When on, every time a ticket, user or asset changes, an up-to-date CSV of that dataset is automatically downloaded to your computer — an easy way to keep an Excel copy of the live data without visiting Export data each time. Use the Export data page any time for a full one-off backup of all six datasets.</div>' +
-    '<label class="checkbox-row" style="font-size:13px"><input type="checkbox" '+(state.autoExport?'checked':'')+' onchange="toggleAutoExport(this.checked)"> Auto-download CSV on every change</label>' +
-  '</div>';
-
-  html += '<div class="card" style="max-width:560px;margin-top:16px">' +
     '<div class="section-title">Scheduled daily export — 6:30 PM</div>' +
     '<div class="hint" style="margin-bottom:10px">Writes all six datasets as CSV files, automatically, every day at 6:30 PM — as long as this tab is open in a browser at that moment. Browsers can\'t write to an arbitrary folder path on their own, so pick the destination folder once below (Chrome or Edge only); other browsers will fall back to your regular Downloads folder.</div>' +
     (state.exportFolderName ?
@@ -2208,11 +2203,23 @@ function settingsHtml(){
 }
 
 /* ================= INIT ================= */
-render();
+restoreSession();
 document.addEventListener('click', function(e){
   if (!e.target.closest('.role-switch') && (state.roleMenuOpen || state.notifOpen)){
     state.roleMenuOpen = false; state.notifOpen = false; render();
   }
+}, true);
+
+/* Enter key submits the current auth form (login / signup / forgot password),
+   same as clicking the primary button — works from any field in the form. */
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' || state.authenticated) return;
+  const tag = e.target.tagName;
+  if (tag !== 'INPUT') return; // don't hijack Enter inside textareas etc.
+  e.preventDefault();
+  if (state.authView === 'login') attemptLogin();
+  else if (state.authView === 'signup') doSignup();
+  else if (state.authView === 'forgot') doForgotPassword();
 }, true);
 </script>
 </body>
